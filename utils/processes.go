@@ -9,6 +9,9 @@ type ProcessState int
 type ProcessChain chan struct{}
 
 type ProcessFunction func(*ProcessManager, *ProcessChain, *ProcessChain)
+type PID int64
+
+var REG_PID PID = 0
 
 const (
 	DEFAULT ProcessState = iota
@@ -51,11 +54,17 @@ func (m ProcessManager) Status() bool {
 func (m ProcessManager) startProcess() {
 	defer func() {
 		if m._progess {
-			m._state = RUNNING
+			m._state = STOP
 		} else {
 			m._state = ERROR
 		}
+		m._progess = false
 	}()
+	REG_PID++
+	m.Pid = REG_PID
 	m._state = STARTING
+	m._state = RUNNING
 	m._function(&m, &m.InChain, &m.OutChain)
+	m._progess = true
+
 }
