@@ -22,16 +22,24 @@ const (
 )
 
 type ProcessManager struct {
-	Pid			int64
-	InChain		ProcessChain
-	OutChain	ProcessChain
-	_state		ProcessState
-	_progess	bool
-	_function	ProcessFunction
-	
+	Pid       int64
+	InChain   ProcessChain
+	OutChain  ProcessChain
+	_state    ProcessState
+	_progess  bool
+	_function *ProcessFunction
+}
+
+func (m ProcessManager) Init(function *ProcessFunction) {
+	m._function = function
+	m.InChain = make(ProcessChain)
+	m.OutChain = make(ProcessChain)
 }
 
 func (m ProcessManager) Start() {
+	if m._function == nil {
+		panic("ProcessManager::error : Please provide function to process manager")
+	}
 	m._progess = false
 	m.startProcess()
 }
@@ -47,6 +55,6 @@ func (m ProcessManager) startProcess() {
 		} else {
 			m._state = ERROR
 		}
-	}	
+	}()
 	m._state = STARTING
 }
