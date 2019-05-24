@@ -8,7 +8,7 @@ import (
 type ProcessState int
 type ProcessChain chan struct{}
 
-type ProcessFunction func(*ProcessManager, ProcessChain, ProcessChain)
+type ProcessFunction func(*ProcessManager, *ProcessChain, *ProcessChain)
 
 const (
 	DEFAULT ProcessState = iota
@@ -27,10 +27,10 @@ type ProcessManager struct {
 	OutChain  ProcessChain
 	_state    ProcessState
 	_progess  bool
-	_function *ProcessFunction
+	_function ProcessFunction
 }
 
-func (m ProcessManager) Init(function *ProcessFunction) {
+func (m ProcessManager) Init(function ProcessFunction) {
 	m._function = function
 	m.InChain = make(ProcessChain)
 	m.OutChain = make(ProcessChain)
@@ -57,4 +57,5 @@ func (m ProcessManager) startProcess() {
 		}
 	}()
 	m._state = STARTING
+	m._function(&m, &m.InChain, &m.OutChain)
 }
