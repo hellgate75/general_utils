@@ -7,17 +7,18 @@ import (
 )
 
 func TestArrayNav(t *testing.T) {
-	var arr []interface{} = make([]string, 5, 10)
+	var arr []Type = make([]Type, 5, 10)
 	for index := 0; index < 5; index++ {
-		arr[index] = string(index + 1)
+		arr[index] = fmt.Sprintf("%v", index+1)
 	}
-	nav := ArrayNav(arr)
-	var expectedValue int = 1
+	nav := NewArrayNav(arr)
+	var expectedValue int = 0
 	for nav.Next() {
 		expectedValue++
-		var valueStr string = (nav.Get()).(string)
-		if string(expectedValue) != valueStr {
-			t.Fatal("Expected <" + string(expectedValue) + "> but given <" + valueStr + ">")
+		var valueStr string = fmt.Sprintf("%v", nav.Get())
+		var expectedValueStr string = fmt.Sprintf("%v", expectedValue)
+		if expectedValueStr != valueStr {
+			t.Fatal("Expected <" + expectedValueStr + "> but given <" + valueStr + ">")
 		}
 	}
 
@@ -28,7 +29,7 @@ func TestIntArrayNav(t *testing.T) {
 	for index := 0; index < 5; index++ {
 		arr[index] = index + 1
 	}
-	nav := IntArrayNav(arr)
+	nav := NewIntArrayNav(arr)
 	var expectedValue int = 0
 	for nav.Next() {
 		expectedValue++
@@ -44,7 +45,7 @@ func TestFloatArrayNav(t *testing.T) {
 	for index := 0; index < 5; index++ {
 		arr[index] = float64(index) + 1.0
 	}
-	nav := FloatArrayNav(arr)
+	nav := NewFloatArrayNav(arr)
 	var expectedValue float64 = 0.0
 	for nav.Next() {
 		expectedValue++
@@ -62,8 +63,8 @@ func TestBoolArrayNav(t *testing.T) {
 	for index := 0; index < 5; index++ {
 		arr[index] = (index%2 == 0)
 	}
-	nav := BoolArrayNav(arr)
-	var counter int = 0
+	nav := NewBoolArrayNav(arr)
+	var counter int = -1
 	var expectedValue bool = true
 	for nav.Next() {
 		counter++

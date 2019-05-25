@@ -4,10 +4,10 @@ import (
 	"fmt"
 )
 
-type Item interface{}
+type Type interface{}
 
 type NavAttr struct {
-	arr_sel []interface{}
+	arr_sel []Type
 	index   int
 }
 
@@ -90,7 +90,7 @@ func (nav *BoolNavAttr) Prev() bool {
 	return flag
 }
 
-func (nav *NavAttr) Get() interface{} {
+func (nav *NavAttr) Get() Type {
 	if nav.index >= 0 {
 		return nav.arr_sel[nav.index]
 	}
@@ -154,29 +154,55 @@ func (nav *BoolNavAttr) Position() int {
 	return nav.index
 }
 
-func ArrayNav(arr []interface{}) NavAttr {
-	return NavAttr{
+type baseArrayNav interface {
+	Prev() bool
+	Next() bool
+	Len() int
+	Position() int
+}
+type ArrayNav interface {
+	baseArrayNav
+	Get() Type
+}
+
+type IntArrayNav interface {
+	baseArrayNav
+	Get() int
+}
+
+type FloatArrayNav interface {
+	baseArrayNav
+	Get() float64
+}
+
+type BoolArrayNav interface {
+	baseArrayNav
+	Get() bool
+}
+
+func NewArrayNav(arr []Type) ArrayNav {
+	return &NavAttr{
 		arr_sel: arr,
 		index:   -1,
 	}
 }
 
-func IntArrayNav(arr []int) IntNavAttr {
-	return IntNavAttr{
+func NewIntArrayNav(arr []int) IntArrayNav {
+	return &IntNavAttr{
 		arr_sel: arr,
 		index:   -1,
 	}
 }
 
-func FloatArrayNav(arr []float64) FloatNavAttr {
-	return FloatNavAttr{
+func NewFloatArrayNav(arr []float64) FloatArrayNav {
+	return &FloatNavAttr{
 		arr_sel: arr,
 		index:   -1,
 	}
 }
 
-func BoolArrayNav(arr []bool) BoolNavAttr {
-	return BoolNavAttr{
+func NewBoolArrayNav(arr []bool) BoolArrayNav {
+	return &BoolNavAttr{
 		arr_sel: arr,
 		index:   -1,
 	}
