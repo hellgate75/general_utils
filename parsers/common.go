@@ -8,43 +8,57 @@ import (
 
 var logger log.Logger = log.GetLogger()
 
+// Geeric Type
 type Type interface{}
 
+// Parser Ecoding Type
 type Encoding int
 
 const (
+	// JSON Encoding type
 	JSON Encoding = 1
-	XML  Encoding = 2
+	// XML Encoding type
+	XML Encoding = 2
+	// YAML Encoding type
 	YAML Encoding = 3
 )
 
-type XmlParserStruct struct {
+type xmlParserStruct struct {
 }
 
-type JsonParserStruct struct {
+type jsonParserStruct struct {
 }
 
-type YamlParserStruct struct {
+type yamlParserStruct struct {
 }
 
+// Define Generic Parser Features
 type Parser interface {
-	DeserializeFromFile(filePath string, mask *Type) error
+	// Provides read access to log configuration and parse from a File.
+	//
+	// Parameters:
+	//   encoding (parsers.Encoding) File Encoding type (JSON, XML, YAML)
+	//   filePath (string) File full path
+	//
+	// Returns:
+	// error Any suitable error during code execution
+	DeserializeFromFile(filePath string, mask Type) error
 
-	DeserializeFromBytes(bytes []byte, mask *Type) error
+	DeserializeFromBytes(bytes []byte, mask Type) error
 
-	SerializeToFile(filePath string, mask *Type) error
+	SerializeToFile(filePath string, mask Type) error
 
-	SerializeToBytes(mask *Type) ([]byte, error)
+	SerializeToBytes(mask Type) ([]byte, error)
 }
 
 func New(enc Encoding) (Parser, error) {
 	switch enc {
 	case JSON:
-		return &JsonParserStruct{}, nil
+		return &jsonParserStruct{}, nil
 	case XML:
-		return &XmlParserStruct{}, nil
+		return &xmlParserStruct{}, nil
 	case YAML:
-		return &YamlParserStruct{}, nil
+		return &yamlParserStruct{}, nil
 	}
 	return nil, errors.New(fmt.Sprintf("Uknown Parser : %v", enc))
 }

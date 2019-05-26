@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func (this *JsonParserStruct) DeserializeFromFile(filePath string, mask *Type) error {
+func (this *jsonParserStruct) DeserializeFromFile(filePath string, mask Type) error {
 	var bytes []byte
 	var err error
 	if bytes, err = streams.LoadFileBytes(filePath); err == nil {
@@ -19,9 +19,9 @@ func (this *JsonParserStruct) DeserializeFromFile(filePath string, mask *Type) e
 	}
 }
 
-func (this *JsonParserStruct) DeserializeFromBytes(bytes []byte, mask *Type) error {
+func (this *jsonParserStruct) DeserializeFromBytes(bytes []byte, mask Type) error {
 	var err error
-	if err = json.Unmarshal(bytes, mask); err == nil {
+	if err = json.Unmarshal(bytes, &mask); err == nil {
 		var length interface{} = "<null>"
 		if bytes != nil {
 			length = strconv.Itoa(len(bytes))
@@ -34,7 +34,7 @@ func (this *JsonParserStruct) DeserializeFromBytes(bytes []byte, mask *Type) err
 	}
 }
 
-func (this *JsonParserStruct) SerializeToFile(filePath string, mask *Type) error {
+func (this *jsonParserStruct) SerializeToFile(filePath string, mask Type) error {
 	var bytes []byte
 	var err error
 	if bytes, err = this.SerializeToBytes(mask); err == nil {
@@ -51,10 +51,10 @@ func (this *JsonParserStruct) SerializeToFile(filePath string, mask *Type) error
 	}
 }
 
-func (this *JsonParserStruct) SerializeToBytes(mask *Type) ([]byte, error) {
+func (this *jsonParserStruct) SerializeToBytes(mask Type) ([]byte, error) {
 	var bytes []byte
 	var err error
-	if bytes, err = json.Marshal(mask); err == nil {
+	if bytes, err = json.Marshal(&mask); err == nil {
 		return bytes, nil
 	} else {
 		logger.Error(err)

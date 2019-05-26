@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func (this *XmlParserStruct) DeserializeFromFile(filePath string, mask *Type) error {
+func (this *xmlParserStruct) DeserializeFromFile(filePath string, mask Type) error {
 	var bytes []byte
 	var err error
 	if bytes, err = streams.LoadFileBytes(filePath); err == nil {
@@ -18,9 +18,9 @@ func (this *XmlParserStruct) DeserializeFromFile(filePath string, mask *Type) er
 	}
 }
 
-func (this *XmlParserStruct) DeserializeFromBytes(bytes []byte, mask *Type) error {
+func (this *xmlParserStruct) DeserializeFromBytes(bytes []byte, mask Type) error {
 	var err error
-	if err = xml.Unmarshal(bytes, mask); err == nil {
+	if err = xml.Unmarshal(bytes, &mask); err == nil {
 		var length interface{} = "<null>"
 		if bytes != nil {
 			length = strconv.Itoa(len(bytes))
@@ -33,7 +33,7 @@ func (this *XmlParserStruct) DeserializeFromBytes(bytes []byte, mask *Type) erro
 	}
 }
 
-func (this *XmlParserStruct) SerializeToFile(filePath string, mask *Type) error {
+func (this *xmlParserStruct) SerializeToFile(filePath string, mask Type) error {
 	var bytes []byte
 	var err error
 	if bytes, err = this.SerializeToBytes(mask); err == nil {
@@ -50,10 +50,10 @@ func (this *XmlParserStruct) SerializeToFile(filePath string, mask *Type) error 
 	}
 }
 
-func (this *XmlParserStruct) SerializeToBytes(mask *Type) ([]byte, error) {
+func (this *xmlParserStruct) SerializeToBytes(mask Type) ([]byte, error) {
 	var bytes []byte
 	var err error
-	if bytes, err = xml.Marshal(mask); err == nil {
+	if bytes, err = xml.Marshal(&mask); err == nil {
 		return bytes, nil
 	} else {
 		logger.Error(err)

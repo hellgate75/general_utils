@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func (this *YamlParserStruct) DeserializeFromFile(filePath string, mask *Type) error {
+func (this *yamlParserStruct) DeserializeFromFile(filePath string, mask Type) error {
 	var bytes []byte
 	var err error
 	if bytes, err = streams.LoadFileBytes(filePath); err == nil {
@@ -18,9 +18,9 @@ func (this *YamlParserStruct) DeserializeFromFile(filePath string, mask *Type) e
 	}
 }
 
-func (this *YamlParserStruct) DeserializeFromBytes(bytes []byte, mask *Type) error {
+func (this *yamlParserStruct) DeserializeFromBytes(bytes []byte, mask Type) error {
 	var err error
-	if err = yaml.Unmarshal(bytes, mask); err == nil {
+	if err = yaml.Unmarshal(bytes, &mask); err == nil {
 		var length interface{} = "<null>"
 		if bytes != nil {
 			length = strconv.Itoa(len(bytes))
@@ -33,7 +33,7 @@ func (this *YamlParserStruct) DeserializeFromBytes(bytes []byte, mask *Type) err
 	}
 }
 
-func (this *YamlParserStruct) SerializeToFile(filePath string, mask *Type) error {
+func (this *yamlParserStruct) SerializeToFile(filePath string, mask Type) error {
 	var bytes []byte
 	var err error
 	if bytes, err = this.SerializeToBytes(mask); err == nil {
@@ -50,10 +50,10 @@ func (this *YamlParserStruct) SerializeToFile(filePath string, mask *Type) error
 	}
 }
 
-func (this *YamlParserStruct) SerializeToBytes(mask *Type) ([]byte, error) {
+func (this *yamlParserStruct) SerializeToBytes(mask Type) ([]byte, error) {
 	var bytes []byte
 	var err error
-	if bytes, err = yaml.Marshal(mask); err == nil {
+	if bytes, err = yaml.Marshal(&mask); err == nil {
 		return bytes, nil
 	} else {
 		logger.Error(err)

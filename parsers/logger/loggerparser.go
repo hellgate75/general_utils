@@ -1,11 +1,20 @@
 package parsers
 
 import (
+	"github.com/hellgate75/general_utils/log"
 	"github.com/hellgate75/general_utils/parsers"
 )
 
-var conf LogConfig = LogConfig{}
+var conf log.LogConfig = log.LogConfig{}
 
+// Provides read access to log configuration and parse from a File.
+//
+// Parameters:
+//   encoding (parsers.Encoding) File Encoding type (JSON, XML, YAML)
+//   filePath (string) File full path
+//
+// Returns:
+// error Any suitable error during code execution
 func InitStaticFromFile(encoding parsers.Encoding, filePath string) error {
 	var parser parsers.Parser
 	var err error
@@ -14,11 +23,14 @@ func InitStaticFromFile(encoding parsers.Encoding, filePath string) error {
 	if err != nil {
 		return err
 	}
-	//TODO Complete and fix issues
-	//err = parser.DeserializeFromFile(filePath, &conf)
+	err = parser.DeserializeFromFile(filePath, conf)
 	return err
 }
 
-func GetLogConfig() LogConfig {
+// Retrieve loaded log configuration.
+//
+// Returns:
+// LogConfig Loaded Log Configuration
+func GetLogConfig() log.LogConfig {
 	return conf
 }
