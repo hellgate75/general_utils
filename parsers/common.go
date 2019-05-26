@@ -8,7 +8,7 @@ import (
 
 var logger log.Logger = log.GetLogger()
 
-// Geeric Type
+// Generic Type
 type Type interface{}
 
 // Parser Ecoding Type
@@ -34,23 +34,55 @@ type yamlParserStruct struct {
 
 // Define Generic Parser Features
 type Parser interface {
-	// Provides read access to log configuration and parse from a File.
+	// Provides Deserialization from a File.
 	//
 	// Parameters:
-	//   encoding (parsers.Encoding) File Encoding type (JSON, XML, YAML)
 	//   filePath (string) File full path
+	//   mask (parser.Type) Generic Element to be deserialized
 	//
 	// Returns:
 	// error Any suitable error during code execution
 	DeserializeFromFile(filePath string, mask Type) error
 
+	// Provides Deserialization from a byte array.
+	//
+	// Parameters:
+	//   bytes ([]byte) Bytes to be parsed
+	//   mask (parser.Type) Generic Element to be deserialized
+	//
+	// Returns:
+	// error Any suitable error during code execution
 	DeserializeFromBytes(bytes []byte, mask Type) error
 
+	// Provides Serialization to a File.
+	//
+	// Parameters:
+	//   filePath (string) File full path
+	//   mask (parser.Type) Generic Element to be serialized
+	//
+	// Returns:
+	// error Any suitable error during code execution
 	SerializeToFile(filePath string, mask Type) error
 
+	// Provides Serialization from a byte array.
+	//
+	// Parameters:
+	//   mask (parser.Type) Generic Element to be serialized
+	//
+	// Returns:
+	// []byte Object serialization Byte array
+	// error Any suitable error during code execution
 	SerializeToBytes(mask Type) ([]byte, error)
 }
 
+// Creates new Parser.
+//
+// Parameters:
+//   enc (parser.Encoding) Parser encoding type
+//
+// Returns:
+// parser.Parser Required parser or Nil if not available
+// error Any suitable error during code execution
 func New(enc Encoding) (Parser, error) {
 	switch enc {
 	case JSON:
