@@ -13,3 +13,5 @@
 .externalToolBuilders
 .project
 .settings
+_vendor*
+vendor
