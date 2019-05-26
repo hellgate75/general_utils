@@ -5,8 +5,6 @@ import (
 	"github.com/hellgate75/general_utils/parsers"
 )
 
-var conf log.LogConfig = log.LogConfig{}
-
 // Provides read access to log configuration and parse from a File.
 //
 // Parameters:
@@ -14,23 +12,34 @@ var conf log.LogConfig = log.LogConfig{}
 //   filePath (string) File full path
 //
 // Returns:
-// error Any suitable error during code execution
-func InitStaticFromFile(encoding parsers.Encoding, filePath string) error {
+// error Any suitable error risen during code execution
+func LoadLoggerConfigFromFile(encoding parsers.Encoding, filePath string) (*log.LogConfig, error) {
 	var parser parsers.Parser
 	var err error
 	parser, err = parsers.New(encoding)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var conf log.LogConfig = log.LogConfig{}
 	err = parser.DeserializeFromFile(filePath, conf)
-	return err
+	return &conf, err
+}
+
+var conf log.LogConfig = log.LogConfig{}
+
+// Set loaded log configuration.
+//
+// Paraeters:
+// config (log.LogConfig) Loaded Log Configuration
+func SetLogConfig(config log.LogConfig) {
+	conf = config
 }
 
 // Retrieve loaded log configuration.
 //
 // Returns:
-// LogConfig Loaded Log Configuration
+// log.LogConfig Loaded Log Configuration
 func GetLogConfig() log.LogConfig {
 	return conf
 }

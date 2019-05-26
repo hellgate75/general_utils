@@ -2,13 +2,14 @@ package parsers
 
 import (
 	"fmt"
+	"github.com/hellgate75/general_utils/common"
 	"github.com/hellgate75/general_utils/streams"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"strconv"
 )
 
-func (this *yamlParserStruct) DeserializeFromFile(filePath string, mask Type) error {
+func (this *yamlParserStruct) DeserializeFromFile(filePath string, mask common.Type) error {
 	var bytes []byte
 	var err error
 	if bytes, err = streams.LoadFileBytes(filePath); err == nil {
@@ -18,7 +19,7 @@ func (this *yamlParserStruct) DeserializeFromFile(filePath string, mask Type) er
 	}
 }
 
-func (this *yamlParserStruct) DeserializeFromBytes(bytes []byte, mask Type) error {
+func (this *yamlParserStruct) DeserializeFromBytes(bytes []byte, mask common.Type) error {
 	var err error
 	if err = yaml.Unmarshal(bytes, &mask); err == nil {
 		var length interface{} = "<null>"
@@ -33,7 +34,7 @@ func (this *yamlParserStruct) DeserializeFromBytes(bytes []byte, mask Type) erro
 	}
 }
 
-func (this *yamlParserStruct) SerializeToFile(filePath string, mask Type) error {
+func (this *yamlParserStruct) SerializeToFile(filePath string, mask common.Type) error {
 	var bytes []byte
 	var err error
 	if bytes, err = this.SerializeToBytes(mask); err == nil {
@@ -50,7 +51,7 @@ func (this *yamlParserStruct) SerializeToFile(filePath string, mask Type) error 
 	}
 }
 
-func (this *yamlParserStruct) SerializeToBytes(mask Type) ([]byte, error) {
+func (this *yamlParserStruct) SerializeToBytes(mask common.Type) ([]byte, error) {
 	var bytes []byte
 	var err error
 	if bytes, err = yaml.Marshal(&mask); err == nil {

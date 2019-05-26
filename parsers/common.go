@@ -2,14 +2,13 @@ package parsers
 
 import (
 	"fmt"
+	"github.com/hellgate75/general_utils/common"
 	"github.com/hellgate75/general_utils/errors"
 	"github.com/hellgate75/general_utils/log"
+	"strings"
 )
 
 var logger log.Logger = log.GetLogger()
-
-// Generic Type
-type Type interface{}
 
 // Parser Ecoding Type
 type Encoding int
@@ -22,6 +21,30 @@ const (
 	// YAML Encoding type
 	YAML Encoding = 3
 )
+
+// Transform text to representing Encoding element.
+//
+// Parameters:
+//   text (string) Text to parse
+//
+// Returns:
+//   parsers.Encoding File Encoding type (JSON, XML, YAML)
+//   error Any suitable error risen during code execution
+func EncodingFromString(text string) (Encoding, error) {
+	if strings.TrimSpace(text) == "" {
+		return 0, errors.New("parsers::EncodingFromString::error : Empty input string")
+	}
+	value := strings.ToUpper(text)
+	switch value {
+	case "JSON":
+		return JSON, nil
+	case "XML":
+		return XML, nil
+	case "YAML":
+		return YAML, nil
+	}
+	return JSON, nil
+}
 
 type xmlParserStruct struct {
 }
@@ -38,41 +61,41 @@ type Parser interface {
 	//
 	// Parameters:
 	//   filePath (string) File full path
-	//   mask (parser.Type) Generic Element to be deserialized
+	//   mask (common.Type) Generic Element to be deserialized
 	//
 	// Returns:
-	// error Any suitable error during code execution
-	DeserializeFromFile(filePath string, mask Type) error
+	// error Any suitable error risen during code execution
+	DeserializeFromFile(filePath string, mask common.Type) error
 
 	// Provides Deserialization from a byte array.
 	//
 	// Parameters:
 	//   bytes ([]byte) Bytes to be parsed
-	//   mask (parser.Type) Generic Element to be deserialized
+	//   mask (common.Type) Generic Element to be deserialized
 	//
 	// Returns:
-	// error Any suitable error during code execution
-	DeserializeFromBytes(bytes []byte, mask Type) error
+	// error Any suitable error risen during code execution
+	DeserializeFromBytes(bytes []byte, mask common.Type) error
 
 	// Provides Serialization to a File.
 	//
 	// Parameters:
 	//   filePath (string) File full path
-	//   mask (parser.Type) Generic Element to be serialized
+	//   mask (common.Type) Generic Element to be serialized
 	//
 	// Returns:
-	// error Any suitable error during code execution
-	SerializeToFile(filePath string, mask Type) error
+	// error Any suitable error risen during code execution
+	SerializeToFile(filePath string, mask common.Type) error
 
 	// Provides Serialization from a byte array.
 	//
 	// Parameters:
-	//   mask (parser.Type) Generic Element to be serialized
+	//   mask common.Type) Generic Element to be serialized
 	//
 	// Returns:
 	// []byte Object serialization Byte array
-	// error Any suitable error during code execution
-	SerializeToBytes(mask Type) ([]byte, error)
+	// error Any suitable error risen during code execution
+	SerializeToBytes(mask common.Type) ([]byte, error)
 }
 
 // Creates new Parser.
@@ -82,7 +105,7 @@ type Parser interface {
 //
 // Returns:
 // parser.Parser Required parser or Nil if not available
-// error Any suitable error during code execution
+// error Any suitable error risen during code execution
 func New(enc Encoding) (Parser, error) {
 	switch enc {
 	case JSON:

@@ -2,12 +2,11 @@ package utils
 
 import (
 	"fmt"
+	"github.com/hellgate75/general_utils/common"
 )
 
-type Type interface{}
-
 type NavAttr struct {
-	arr_sel []Type
+	arr_sel []common.Type
 	index   int
 }
 
@@ -90,7 +89,7 @@ func (nav *BoolNavAttr) Prev() bool {
 	return flag
 }
 
-func (nav *NavAttr) Get() Type {
+func (nav *NavAttr) Get() common.Type {
 	if nav.index >= 0 {
 		return nav.arr_sel[nav.index]
 	}
@@ -162,7 +161,7 @@ type baseArrayNav interface {
 }
 type ArrayNav interface {
 	baseArrayNav
-	Get() Type
+	Get() common.Type
 }
 
 type IntArrayNav interface {
@@ -180,7 +179,7 @@ type BoolArrayNav interface {
 	Get() bool
 }
 
-func NewArrayNav(arr []Type) ArrayNav {
+func NewArrayNav(arr []common.Type) ArrayNav {
 	return &NavAttr{
 		arr_sel: arr,
 		index:   -1,

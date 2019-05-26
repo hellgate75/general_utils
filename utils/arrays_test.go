@@ -2,12 +2,13 @@ package utils
 
 import (
 	"fmt"
+	"github.com/hellgate75/general_utils/common"
 	"strconv"
 	"testing"
 )
 
 func TestArrayNav(t *testing.T) {
-	var arr []Type = make([]Type, 5, 10)
+	var arr []common.Type = make([]common.Type, 5, 10)
 	for index := 0; index < 5; index++ {
 		arr[index] = fmt.Sprintf("%v", index+1)
 	}

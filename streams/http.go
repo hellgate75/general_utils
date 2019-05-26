@@ -8,7 +8,15 @@ import (
 
 var logger log.Logger = log.GetLogger()
 
-func DownloadFile(filepath string, url string) (err error) {
+// Dowload file from url and save locally.
+//
+// Parameters:
+//   filepath (string) Absolute destination file path
+//   url (string) Source file url
+//
+// Returns:
+//   error Any suitable error risen during code execution
+func DownloadFile(filepath string, url string) error {
 
 	// Get the data
 	resp, err := http.Get(url)
@@ -30,4 +38,29 @@ func DownloadFile(filepath string, url string) (err error) {
 	}
 
 	return nil
+}
+
+// Dowload file from url and return content byte array.
+//
+// Parameters:
+//   url (string) Source file url
+//
+// Returns:
+//   []byte Bytes contained in the remote support
+//   error Any suitable error risen during code execution
+func DownloadFileAsByteArray(filepath string, url string) ([]byte, error) {
+
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+	return body, nil
 }

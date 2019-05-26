@@ -3,12 +3,13 @@ package parsers
 import (
 	"encoding/xml"
 	"fmt"
+	"github.com/hellgate75/general_utils/common"
 	"github.com/hellgate75/general_utils/streams"
 	"io/ioutil"
 	"strconv"
 )
 
-func (this *xmlParserStruct) DeserializeFromFile(filePath string, mask Type) error {
+func (this *xmlParserStruct) DeserializeFromFile(filePath string, mask common.Type) error {
 	var bytes []byte
 	var err error
 	if bytes, err = streams.LoadFileBytes(filePath); err == nil {
@@ -18,7 +19,7 @@ func (this *xmlParserStruct) DeserializeFromFile(filePath string, mask Type) err
 	}
 }
 
-func (this *xmlParserStruct) DeserializeFromBytes(bytes []byte, mask Type) error {
+func (this *xmlParserStruct) DeserializeFromBytes(bytes []byte, mask common.Type) error {
 	var err error
 	if err = xml.Unmarshal(bytes, &mask); err == nil {
 		var length interface{} = "<null>"
@@ -33,7 +34,7 @@ func (this *xmlParserStruct) DeserializeFromBytes(bytes []byte, mask Type) error
 	}
 }
 
-func (this *xmlParserStruct) SerializeToFile(filePath string, mask Type) error {
+func (this *xmlParserStruct) SerializeToFile(filePath string, mask common.Type) error {
 	var bytes []byte
 	var err error
 	if bytes, err = this.SerializeToBytes(mask); err == nil {
@@ -50,7 +51,7 @@ func (this *xmlParserStruct) SerializeToFile(filePath string, mask Type) error {
 	}
 }
 
-func (this *xmlParserStruct) SerializeToBytes(mask Type) ([]byte, error) {
+func (this *xmlParserStruct) SerializeToBytes(mask common.Type) ([]byte, error) {
 	var bytes []byte
 	var err error
 	if bytes, err = xml.Marshal(&mask); err == nil {

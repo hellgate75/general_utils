@@ -3,12 +3,13 @@ package parsers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hellgate75/general_utils/common"
 	"github.com/hellgate75/general_utils/streams"
 	"io/ioutil"
 	"strconv"
 )
 
-func (this *jsonParserStruct) DeserializeFromFile(filePath string, mask Type) error {
+func (this *jsonParserStruct) DeserializeFromFile(filePath string, mask common.Type) error {
 	var bytes []byte
 	var err error
 	if bytes, err = streams.LoadFileBytes(filePath); err == nil {
@@ -19,7 +20,7 @@ func (this *jsonParserStruct) DeserializeFromFile(filePath string, mask Type) er
 	}
 }
 
-func (this *jsonParserStruct) DeserializeFromBytes(bytes []byte, mask Type) error {
+func (this *jsonParserStruct) DeserializeFromBytes(bytes []byte, mask common.Type) error {
 	var err error
 	if err = json.Unmarshal(bytes, &mask); err == nil {
 		var length interface{} = "<null>"
@@ -34,7 +35,7 @@ func (this *jsonParserStruct) DeserializeFromBytes(bytes []byte, mask Type) erro
 	}
 }
 
-func (this *jsonParserStruct) SerializeToFile(filePath string, mask Type) error {
+func (this *jsonParserStruct) SerializeToFile(filePath string, mask common.Type) error {
 	var bytes []byte
 	var err error
 	if bytes, err = this.SerializeToBytes(mask); err == nil {
@@ -51,7 +52,7 @@ func (this *jsonParserStruct) SerializeToFile(filePath string, mask Type) error 
 	}
 }
 
-func (this *jsonParserStruct) SerializeToBytes(mask Type) ([]byte, error) {
+func (this *jsonParserStruct) SerializeToBytes(mask common.Type) ([]byte, error) {
 	var bytes []byte
 	var err error
 	if bytes, err = json.Marshal(&mask); err == nil {

@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/blakesmith/ar"
+	"github.com/hellgate75/general_utils/common"
 	"github.com/hellgate75/general_utils/log"
-	"github.com/hellgate75/general_utils/parsers"
 	"github.com/hellgate75/general_utils/streams"
 	"io"
 	"os"
@@ -14,7 +14,7 @@ import (
 
 var logger log.Logger = log.GetLogger()
 
-func InitDatabaseConfig(arFilePath string, mask *parsers.Type, deserializer func([]byte, *parsers.Type) error) error {
+func InitDatabaseConfig(arFilePath string, mask *common.Type, deserializer func([]byte, *common.Type) error) error {
 	if _, err := os.Stat(arFilePath); err == nil {
 		err, xMap := ReadDatabaseConfig(arFilePath)
 		if err == nil {
@@ -58,7 +58,7 @@ func ReadDatabaseConfig(arFileName string) (error, map[string][]byte) {
 	return nil, files
 }
 
-func LoadDatabaseFromURL(arFileName string, url string, mask *parsers.Type, deserializer func([]byte, *parsers.Type) error) error {
+func LoadDatabaseFromURL(arFileName string, url string, mask *common.Type, deserializer func([]byte, *common.Type) error) error {
 	if _, err := os.Stat(arFileName); err != nil {
 		streams.DownloadFile(arFileName, url)
 	}

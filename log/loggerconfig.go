@@ -26,7 +26,7 @@ const (
 //
 // Returns:
 // WriterType costant element
-// error Any suitable error during code execution
+// error Any suitable error risen during code execution
 
 func WriterTypeFromString(text string) (WriterType, error) {
 	if strings.TrimSpace(text) == "" {
