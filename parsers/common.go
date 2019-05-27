@@ -8,7 +8,12 @@ import (
 	"strings"
 )
 
-var logger log.Logger = log.GetLogger()
+var logger log.Logger = init_logger()
+
+func init_logger() log.Logger {
+	logger, _ := log.New("parsers")
+	return logger
+}
 
 // Parser Ecoding Type
 type Encoding int

@@ -1,12 +1,9 @@
 package streams
 
 import (
-	"github.com/hellgate75/general_utils/log"
 	"io/ioutil"
 	"net/http"
 )
-
-var logger log.Logger = log.GetLogger()
 
 // Dowload file from url and save locally.
 //

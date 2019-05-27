@@ -12,7 +12,12 @@ import (
 	"strings"
 )
 
-var logger log.Logger = log.GetLogger()
+var logger log.Logger = init_logger()
+
+func init_logger() log.Logger {
+	logger, _ := log.New("parsers")
+	return logger
+}
 
 func InitDatabaseConfig(arFilePath string, mask *common.Type, deserializer func([]byte, *common.Type) error) error {
 	if _, err := os.Stat(arFilePath); err == nil {
