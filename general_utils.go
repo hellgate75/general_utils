@@ -1,5 +1,6 @@
-//package general_utils
-package main
+package general_utils
+
+//package main
 
 import (
 	"fmt"
@@ -140,8 +141,8 @@ func InitDeviceLoggerFromFile(filePath string) error {
 	return nil
 }
 
-func main() {
-	InitSimpleLogger(logs.DEBUG)
-	logManager, _ := logs.New("main")
-	logManager.Debug("I will survive")
-}
+//func main() {
+//	InitSimpleLogger(logs.DEBUG)
+//	logManager, _ := logs.New("main")
+//	logManager.Debug("I will survive")
+//}
