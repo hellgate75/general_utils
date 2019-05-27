@@ -26,10 +26,14 @@ func (this *xmlParserStruct) DeserializeFromBytes(bytes []byte, mask common.Type
 		if bytes != nil {
 			length = strconv.Itoa(len(bytes))
 		}
-		logger.Debug(fmt.Sprintf("Successful Deserialized bytes : %v", length))
+		if logger != nil {
+			logger.Debug(fmt.Sprintf("Xml Parser :: Successful Deserialized bytes : %v", length))
+		}
 		return nil
 	} else {
-		logger.Error(err)
+		if logger != nil {
+			logger.Error(err)
+		}
 		return err
 	}
 }
@@ -39,14 +43,20 @@ func (this *xmlParserStruct) SerializeToFile(filePath string, mask common.Type) 
 	var err error
 	if bytes, err = this.SerializeToBytes(mask); err == nil {
 		if err = ioutil.WriteFile(filePath, bytes, 666); err == nil {
-			logger.Debug(fmt.Sprintf("Xml Parser :: File written: %s", filePath))
+			if logger != nil {
+				logger.Debug(fmt.Sprintf("Xml Parser :: File written: %s", filePath))
+			}
 			return nil
 		} else {
-			logger.Error(err)
+			if logger != nil {
+				logger.Error(err)
+			}
 			return err
 		}
 	} else {
-		logger.Error(err)
+		if logger != nil {
+			logger.Error(err)
+		}
 		return err
 	}
 }
@@ -57,7 +67,9 @@ func (this *xmlParserStruct) SerializeToBytes(mask common.Type) ([]byte, error) 
 	if bytes, err = xml.Marshal(&mask); err == nil {
 		return bytes, nil
 	} else {
-		logger.Error(err)
+		if logger != nil {
+			logger.Error(err)
+		}
 		return nil, err
 	}
 }

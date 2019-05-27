@@ -4,9 +4,12 @@ import (
 	"github.com/hellgate75/general_utils/log"
 )
 
-var logger log.Logger = init_logger()
+var logger log.Logger
 
-func init_logger() log.Logger {
-	logger, _ := log.New("streams")
-	return logger
+func InitLogger() {
+	currentLogger, err := log.New("streams")
+	if err != nil {
+		panic(err.Error())
+	}
+	logger = currentLogger
 }

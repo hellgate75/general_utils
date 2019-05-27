@@ -8,11 +8,14 @@ import (
 	"strings"
 )
 
-var logger log.Logger = init_logger()
+var logger log.Logger
 
-func init_logger() log.Logger {
-	logger, _ := log.New("parsers")
-	return logger
+func InitLogger() {
+	currentLogger, err := log.New("parsers")
+	if err != nil {
+		panic(err.Error())
+	}
+	logger = currentLogger
 }
 
 // Parser Ecoding Type

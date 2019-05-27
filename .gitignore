@@ -15,3 +15,4 @@
 .settings
 _vendor*
 vendor
+test/resources

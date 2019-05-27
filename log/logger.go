@@ -207,7 +207,7 @@ func (l *_loggerEngineStruct) IsRunning() bool {
 }
 
 func (l *_loggerEngineStruct) IsSimple() bool {
-	return l._config.loggers == nil
+	return l._config.Loggers == nil
 }
 
 func (l *loggerStruct) Log(level LogLevel, value interface{}) {
@@ -284,7 +284,7 @@ func New(name string) (Logger, error) {
 }
 
 var NULL_LOG_CONFIG LogConfig = LogConfig{
-	loggers: nil,
+	Loggers: nil,
 }
 
 var _loggerEng _loggerEngine = nil
@@ -300,7 +300,7 @@ func getEngine(verbosity LogLevel) _loggerEngine {
 }
 
 func getEngineFromConfig(config LogConfig) (_loggerEngine, error) {
-	verbosity, err := LogLevelFromString(config.verbosity)
+	verbosity, err := LogLevelFromString(config.Verbosity)
 	if err != nil {
 		return nil, err
 	}

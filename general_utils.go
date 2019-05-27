@@ -5,8 +5,8 @@ package general_utils
 import (
 	"fmt"
 	"github.com/hellgate75/general_utils/errors"
-	logs "github.com/hellgate75/general_utils/log"
-	parsers "github.com/hellgate75/general_utils/parsers"
+	"github.com/hellgate75/general_utils/log"
+	"github.com/hellgate75/general_utils/parsers"
 	logger "github.com/hellgate75/general_utils/parsers/logger"
 	"github.com/hellgate75/general_utils/streams"
 	"os"
@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	logFileExtensions []string = []string{"yaml", "xml", "json"}
+	logFileExtensions []string = []string{"yaml", "json", "xml"}
 )
 
 func findFileInPath(folder string, fileName string, extensions []string) (string, string, error) {
@@ -77,16 +77,16 @@ func decomposeFilePath(filePath string) (string, string, []string, error) {
 // Initialized, register and collect Logger from stadards path.
 //
 // Returns:
-//   *logs.Logger Pointer to Initialized system logger
+//   *log.Logger Pointer to Initialized system logger
 //   error Any suitable error risen during code execution
-func InitSimpleLogger(verbosity logs.LogLevel) {
-	logs.InitStatic(verbosity)
+func InitSimpleLogger(verbosity log.LogLevel) {
+	log.InitStatic(verbosity)
 }
 
 // Initialized, register and collect Logger from stadards path.
 //
 // Returns:
-//   *logs.Logger Pointer to Initialized system logger
+//   *log.Logger Pointer to Initialized system logger
 //   error Any suitable error risen during code execution
 func InitDeviceLogger() error {
 	filePath, extension, fErr := findFileInPath(logPath, logFileName, logFileExtensions)
@@ -102,7 +102,7 @@ func InitDeviceLogger() error {
 	if err != nil {
 		return err
 	}
-	logs.InitStaticFromConfig(*conf)
+	log.InitStaticFromConfig(*conf)
 	if err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func InitDeviceLogger() error {
 //   filePath (string) Absolute file path
 //
 // Returns:
-//   *logs.Logger Pointer to Initialized system logger
+//   *log.Logger Pointer to Initialized system logger
 //   error Any suitable error risen during code execution
 func InitDeviceLoggerFromFile(filePath string) error {
 	//TODO Complete!!
@@ -137,12 +137,91 @@ func InitDeviceLoggerFromFile(filePath string) error {
 	if err != nil {
 		return err
 	}
-	logs.InitStaticFromConfig(*conf)
+	log.InitStaticFromConfig(*conf)
 	return nil
 }
 
+// Initialize loggers for all packages. To run after the logger initialization only
+func InitializeLoggers() {
+	parsers.InitLogger()
+	streams.InitLogger()
+}
+
+func _getTestConfig() log.LogConfig {
+	return log.LogConfig{
+		LoggerName: "myLogger",
+		Verbosity:  "debug",
+		Appenders: []log.LogAppender{
+			log.LogAppender{
+				AppenderName: "standardAppender",
+				Verbosity:    "debug",
+				DateFormat:   "2006-01-02 15:04:05.000",
+			},
+		},
+		Writers: []log.LogWriter{
+			log.LogWriter{
+				WriterName: "stdOutWriter",
+				WriterType: log.StdOutWriter,
+			},
+			log.LogWriter{
+				WriterName:  "fileWriter",
+				WriterType:  log.FileWriter,
+				Destination: "C:\\sample-log.log",
+			},
+		},
+		Loggers: []log.LoggerInfo{
+			log.LoggerInfo{
+				AppenderName: "standardAppender",
+				WriterName:   "stdOutWriter",
+				Filters:      []log.LogFilter{},
+			},
+			log.LoggerInfo{
+				AppenderName: "standardAppender",
+				WriterName:   "fileWriter",
+				Filters: []log.LogFilter{
+					log.LogFilter{
+						PackageName: "main",
+						Verbosity:   "info",
+					},
+				},
+			},
+		},
+	}
+}
+
+func WriteTestResources() {
+	InitSimpleLogger(log.DEBUG)
+	InitializeLoggers()
+	//	logManager, _ := log.New("main")
+	//	logManager.Debug("I will survive")
+	var config log.LogConfig = _getTestConfig()
+	var path string = streams.GetCurrentPath() + fmt.Sprintf("%c", os.PathSeparator) + "test" + fmt.Sprintf("%c", os.PathSeparator) + "resources"
+	os.MkdirAll(path, 666)
+	var filePath string = path + fmt.Sprintf("%c", os.PathSeparator) + logFileName
+
+	parser1, _ := parsers.New(parsers.YAML)
+	err1 := parser1.SerializeToFile(filePath+".yaml", config)
+	if err1 != nil {
+		fmt.Printf("error 1 (yaml) : %v", err1)
+	}
+
+	parser2, _ := parsers.New(parsers.JSON)
+	err2 := parser2.SerializeToFile(filePath+".json", config)
+	if err1 != nil {
+		fmt.Printf("error 2 (json) : %v", err2)
+	}
+
+	parser3, _ := parsers.New(parsers.XML)
+	err3 := parser3.SerializeToFile(filePath+".xml", config)
+	if err1 != nil {
+		fmt.Printf("error 3 (xml) : %v", err3)
+	}
+}
+
 //func main() {
-//	InitSimpleLogger(logs.DEBUG)
-//	logManager, _ := logs.New("main")
-//	logManager.Debug("I will survive")
+//	//InitSimpleLogger(log.DEBUG)
+//	//InitializeLoggers()
+//	//	logManager, _ := log.New("main")
+//	//	logManager.Debug("I will survive")
+//	WriteTestResources()
 //}

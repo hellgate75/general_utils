@@ -29,11 +29,17 @@ func LoadFileContent(path string) (string, error) {
 	var err error
 	file, err := os.Open(path)
 	if err != nil {
+		if logger != nil {
+			logger.Error(err)
+		}
 		return "", err
 	}
 	defer file.Close()
 	bytes, err := ioutil.ReadAll(file)
 	if err != nil {
+		if logger != nil {
+			logger.Error(err)
+		}
 		return "", err
 	}
 	return string(bytes), err
@@ -51,11 +57,17 @@ func LoadFileBytes(path string) ([]byte, error) {
 	var err error
 	file, err := os.Open(path)
 	if err != nil {
+		if logger != nil {
+			logger.Error(err)
+		}
 		return nil, err
 	}
 	defer file.Close()
 	bytes, err := ioutil.ReadAll(file)
 	if err != nil {
+		if logger != nil {
+			logger.Error(err)
+		}
 		return nil, err
 	}
 	return bytes, err
