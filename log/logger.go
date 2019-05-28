@@ -3,6 +3,7 @@ package log
 import (
 	"fmt"
 	"github.com/hellgate75/general_utils/errors"
+	parser "github.com/hellgate75/general_utils/log/parser"
 	"reflect"
 	"strings"
 	"time"
@@ -86,9 +87,23 @@ func LogLevelToString(level LogLevel) (string, error) {
 }
 
 type _loggerEngineStruct struct {
-	level    LogLevel
-	_config  LogConfig
-	_running bool
+	level     LogLevel
+	_config   LogConfig
+	_running  bool
+	_testChan *chan interface{}
+}
+
+type _logMapDistItem struct {
+	_appender LogAppender
+	_writer   LogWriter
+	_stream   *parser.LogStream
+	_format   string
+}
+
+type _logMapItem struct {
+	defaultVerbosity LogLevel
+	_dists           []_logMapDistItem
+	_streams         []parser.LogStream
 }
 
 type loggerStruct struct {
@@ -170,7 +185,12 @@ type Logger interface {
 }
 
 func (l *_loggerEngineStruct) _writeLog(level LogLevel, name string, logText interface{}) {
-	fmt.Println(logText)
+
+	if l._testChan == nil {
+		fmt.Println(logText)
+	} else {
+		*l._testChan <- logText
+	}
 }
 
 func (l *_loggerEngineStruct) Log(level LogLevel, value interface{}, err error, name string) {
@@ -180,11 +200,11 @@ func (l *_loggerEngineStruct) Log(level LogLevel, value interface{}, err error, 
 		logLevel = "INFO "
 	}
 	if value == nil {
-		l._writeLog(level, name, fmt.Sprintf("[%s] %s - %s - %s\n", LogDate.Format("2006-01-02 15:04:05.000"), logLevel, name, err.Error()))
+		l._writeLog(level, name, fmt.Sprintf("[%s] %s - %s - %s", LogDate.Format("2006-01-02 15:04:05.000"), logLevel, name, err.Error()))
 	} else if err == nil {
-		l._writeLog(level, name, fmt.Sprintf("[%s] %s - %s - %v\n", LogDate.Format("2006-01-02 15:04:05.000"), logLevel, name, value))
+		l._writeLog(level, name, fmt.Sprintf("[%s] %s - %s - %v", LogDate.Format("2006-01-02 15:04:05.000"), logLevel, name, value))
 	} else {
-		l._writeLog(level, name, fmt.Sprintf("[%s] %s - %s - %v - error : \n", LogDate.Format("2006-01-02 15:04:05.000"), name, logLevel, value, err.Error()))
+		l._writeLog(level, name, fmt.Sprintf("[%s] %s - %s - %v - error : %s", LogDate.Format("2006-01-02 15:04:05.000"), name, logLevel, value, err.Error()))
 	}
 }
 
@@ -291,51 +311,76 @@ var _loggerEng _loggerEngine = nil
 
 var _logger Logger = nil
 
-func getEngine(verbosity LogLevel) _loggerEngine {
+func getEngine(verbosity LogLevel, testChan *chan interface{}) _loggerEngine {
 	return &_loggerEngineStruct{
-		level:    verbosity,
-		_running: false,
-		_config:  NULL_LOG_CONFIG,
+		level:     verbosity,
+		_running:  false,
+		_config:   NULL_LOG_CONFIG,
+		_testChan: testChan,
 	}
 }
 
-func getEngineFromConfig(config LogConfig) (_loggerEngine, error) {
+func getEngineFromConfig(config LogConfig, testChan *chan interface{}) (_loggerEngine, error) {
 	verbosity, err := LogLevelFromString(config.Verbosity)
 	if err != nil {
 		return nil, err
 	}
 	return &_loggerEngineStruct{
-		level:    verbosity,
-		_running: false,
-		_config:  config,
+		level:     verbosity,
+		_running:  false,
+		_config:   config,
+		_testChan: testChan,
 	}, nil
 }
 
-// Istantiate global simple Logger from verbosity.
+// Remove instance of global simple Logger.
+func ResetStaticLoggerEngine() {
+	if _loggerEng != nil && _loggerEng.IsRunning() {
+		_loggerEng.Stop()
+	}
+	_loggerEng = nil
+}
+
+// Istantiate global simple Logger from verbosity, writing to StdOut.
 //
 // Parameters:
 //   verbosity (log.LogLevel) Level for logging
-func InitStatic(verbosity LogLevel) {
+func InitStaticLoggerEngine(verbosity LogLevel) {
+	InitStaticTestLoggerEngine(verbosity, nil)
+}
+
+// Istantiate global simple test Logger from verbosity, writing to passed channel the log instead the StdOut
+//
+// Parameters:
+//   verbosity (log.LogLevel) Level for logging
+//	 testChan (*chan interface{}) Fake output, or nil in case of real Logger
+func InitStaticTestLoggerEngine(verbosity LogLevel, testChan *chan interface{}) {
 	if _loggerEng == nil || !_loggerEng.IsSimple() {
 		if _loggerEng != nil && _loggerEng.IsRunning() {
 			_loggerEng.Stop()
 		}
-		_loggerEng = getEngine(verbosity)
+		_loggerEng = getEngine(verbosity, testChan)
 	}
 }
 
-// Istantiate global full lifecycle Logger from Cofiguration.
+// Istantiate global full lifecycle Logger from Configuration.
 //
 // Parameters:
 //   config (log.LogConfig) Logging exteded configuration
+func InitStaticLoggerEngineFromConfig(config LogConfig) {
+	InitStaticTestLoggerEngineFromConfig(config, nil)
+}
+
+// Istantiate global full lifecycle Logger from Configuration.
 //
-// Returns:
-//   error Any suitable error risen during code execution
-func InitStaticFromConfig(config LogConfig) {
+// Parameters:
+//   config (log.LogConfig) Logging exteded configuration
+//	 testChan (*chan interface{}) Fake output, or nil in case of real Logger
+func InitStaticTestLoggerEngineFromConfig(config LogConfig, testChan *chan interface{}) {
 	if _loggerEng == nil || _loggerEng.IsSimple() {
 		if _loggerEng != nil && _loggerEng.IsRunning() {
 			_loggerEng.Stop()
 		}
-		_loggerEng, _ = getEngineFromConfig(config)
+		_loggerEng, _ = getEngineFromConfig(config, testChan)
 	}
 }
