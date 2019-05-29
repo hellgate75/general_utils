@@ -2,6 +2,7 @@ package general_utils
 
 import (
 	"fmt"
+	"github.com/hellgate75/general_utils/common"
 	"github.com/hellgate75/general_utils/log"
 	"github.com/hellgate75/general_utils/parsers"
 	streams "github.com/hellgate75/general_utils/streams"
@@ -26,13 +27,15 @@ func _getTestConfig1() log.LogConfig {
 		},
 		Writers: []log.LogWriter{
 			log.LogWriter{
-				WriterName: "stdOutWriter",
-				WriterType: log.StdOutWriter,
+				WriterName:     "stdOutWriter",
+				WriterType:     common.StdOutWriter,
+				WriterEncoding: common.PlainTextFormat,
 			},
 			log.LogWriter{
-				WriterName:  "fileWriter",
-				WriterType:  log.FileWriter,
-				Destination: "C:\\sample-log.log",
+				WriterName:     "fileWriter",
+				WriterType:     log.FileWriter,
+				Destination:    "C:\\sample-log.log",
+				WriterEncoding: common.JsonFormat,
 			},
 		},
 		Loggers: []log.LoggerInfo{

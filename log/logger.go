@@ -2,10 +2,12 @@ package log
 
 import (
 	"fmt"
+	"github.com/hellgate75/general_utils/common"
 	"github.com/hellgate75/general_utils/errors"
 	parser "github.com/hellgate75/general_utils/log/parser"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -35,9 +37,9 @@ const (
 // Returns:
 //   log.LogConfig representing Log level
 //   error Any suitable error risen during code execution
-func LogLevelFromString(text string) (LogLevel, error) {
+func StringToLogLevel(text string) (LogLevel, error) {
 	if strings.TrimSpace(text) == "" {
-		return 0, errors.New("logger::LogLevelFromString::error : Empty input string")
+		return 0, errors.New("logger::StringToLogLevel::error : Empty input string")
 	}
 	value := strings.ToUpper(text)
 	switch value {
@@ -86,24 +88,27 @@ func LogLevelToString(level LogLevel) (string, error) {
 	return "INFO", nil
 }
 
+type LogMapItem struct {
+	DefaultVerbosity LogLevel
+	Dists            []LogMapDistItem
+	Streams          []parser.LogStream
+}
+
 type _loggerEngineStruct struct {
-	level     LogLevel
-	_config   LogConfig
-	_running  bool
-	_testChan *chan interface{}
+	sync.RWMutex
+	level    LogLevel
+	Config   LogConfig
+	Running  bool
+	TestChan *chan interface{}
+	Map      map[string]LogMapItem
 }
 
-type _logMapDistItem struct {
-	_appender LogAppender
-	_writer   LogWriter
-	_stream   *parser.LogStream
-	_format   string
-}
-
-type _logMapItem struct {
-	defaultVerbosity LogLevel
-	_dists           []_logMapDistItem
-	_streams         []parser.LogStream
+type LogMapDistItem struct {
+	Appender LogAppender
+	Writer   LogWriter
+	Stream   parser.LogStream
+	Format   string
+	Device   string
 }
 
 type loggerStruct struct {
@@ -186,10 +191,10 @@ type Logger interface {
 
 func (l *_loggerEngineStruct) _writeLog(level LogLevel, name string, logText interface{}) {
 
-	if l._testChan == nil {
+	if l.TestChan == nil {
 		fmt.Println(logText)
 	} else {
-		*l._testChan <- logText
+		*l.TestChan <- logText
 	}
 }
 
@@ -209,25 +214,111 @@ func (l *_loggerEngineStruct) Log(level LogLevel, value interface{}, err error, 
 }
 
 func (l *_loggerEngineStruct) Start(conf LogConfig) {
-	l._config = conf
-	l.runConfig()
+	l.Config = conf
+	l._runConfig()
 }
 
-func (l *_loggerEngineStruct) runConfig() {
-	l._running = true
+func (l *_loggerEngineStruct) _runConfig() {
+	l.Running = true
+
+	var warnings []string
+
+	var appendersMap map[string]LogAppender = make(map[string]LogAppender)
+
+	for _, app := range l.Config.Appenders {
+		appendersMap[app.AppenderName] = app
+	}
+	var writersMap map[string]LogWriter = make(map[string]LogWriter)
+
+	for _, wtr := range l.Config.Writers {
+		writersMap[wtr.WriterName] = wtr
+	}
+
+	//loggerName := l.Config.LoggerName
+	//globalVerb, gVErr := StringToLogLevel(l.Config.Verbosity)
+
+	for _, lgr := range l.Config.Loggers {
+		appenderName := lgr.AppenderName
+		writerName := lgr.WriterName
+		appender, okAppender := appendersMap[appenderName]
+		writer, okWriter := writersMap[writerName]
+		if !okAppender {
+			//Missing appender
+			warnings = append(warnings, fmt.Sprintf("Missing Appender <%s> in Log Config", appenderName))
+		} else {
+			if !okWriter {
+				//Missing writer
+				warnings = append(warnings, fmt.Sprintf("Missing Writer <%s> in Log Config", writerName))
+			} else {
+				//All is fine
+				for _, fltr := range lgr.Filters {
+					pkgName := fltr.PackageName
+					pkgVerbosity, _ := StringToLogLevel(fltr.Verbosity)
+					var item LogMapItem
+					if _, ok := l.Map[pkgName]; ok {
+						//Update Item
+						item, _ = l.Map[pkgName]
+					} else {
+						//Create Item
+						item = LogMapItem{
+							DefaultVerbosity: pkgVerbosity,
+							Dists:            []LogMapDistItem{},
+							Streams:          []parser.LogStream{},
+						}
+
+						l.Map[pkgName] = item
+					}
+					//Update Item
+					lst, lstErr := parser.WriterTypeToLogStreamType(writer.WriterType)
+					if lstErr != nil {
+						//Log warning lstErr
+						lst = parser.StdOutStreamType
+						warnings = append(warnings, fmt.Sprintf("Lost In/Out Stream (%s), replaced with StdOut - throw clause : %s", writer.WriterType, lstErr.Error()))
+					}
+					streamIO, streamErr := parser.New(lst, writer.WriterEncoding)
+					if streamErr == nil {
+						//						type LogMapItem struct {
+						//							DefaultVerbosity	LogLevel
+						//							Dists           	[]LogMapDistItem
+						//							Streams         	[]parser.LogStream
+						//						}
+						format, _ := common.StreamInOutFormatToString(writer.WriterEncoding)
+						device, _ := common.WriterTypeToString(writer.WriterType)
+						item.Dists = append(item.Dists, LogMapDistItem{
+							Appender: appender,
+							Writer:   writer,
+							Format:   format,
+							Stream:   streamIO,
+							Device:   device,
+						})
+						item.Streams = append(item.Streams, streamIO)
+						item.DefaultVerbosity = pkgVerbosity
+						delete(l.Map, pkgName)
+						l.Map[pkgName] = item
+					} else {
+						//Log warning streamErr
+						warnings = append(warnings, fmt.Sprintf("Lost Logger (%s) - throw clause : %s", writer.WriterName, streamErr.Error()))
+					}
+				}
+
+			}
+		}
+	}
+
 	//TODO Prepare Config and run logger tasks
+
 }
 
 func (l *_loggerEngineStruct) Stop() {
-	l._running = false
+	l.Running = false
 }
 
 func (l *_loggerEngineStruct) IsRunning() bool {
-	return l._running
+	return l.Running
 }
 
 func (l *_loggerEngineStruct) IsSimple() bool {
-	return l._config.Loggers == nil
+	return l.Config.Loggers == nil
 }
 
 func (l *loggerStruct) Log(level LogLevel, value interface{}) {
@@ -303,7 +394,7 @@ func New(name string) (Logger, error) {
 	}, nil
 }
 
-var NULL_LOG_CONFIG LogConfig = LogConfig{
+var NULL_LOGConfig LogConfig = LogConfig{
 	Loggers: nil,
 }
 
@@ -313,23 +404,25 @@ var _logger Logger = nil
 
 func getEngine(verbosity LogLevel, testChan *chan interface{}) _loggerEngine {
 	return &_loggerEngineStruct{
-		level:     verbosity,
-		_running:  false,
-		_config:   NULL_LOG_CONFIG,
-		_testChan: testChan,
+		level:    verbosity,
+		Running:  false,
+		Config:   NULL_LOGConfig,
+		TestChan: testChan,
+		Map:      make(map[string]LogMapItem),
 	}
 }
 
 func getEngineFromConfig(config LogConfig, testChan *chan interface{}) (_loggerEngine, error) {
-	verbosity, err := LogLevelFromString(config.Verbosity)
+	verbosity, err := StringToLogLevel(config.Verbosity)
 	if err != nil {
 		return nil, err
 	}
 	return &_loggerEngineStruct{
-		level:     verbosity,
-		_running:  false,
-		_config:   config,
-		_testChan: testChan,
+		level:    verbosity,
+		Running:  false,
+		Config:   config,
+		TestChan: testChan,
+		Map:      make(map[string]LogMapItem),
 	}, nil
 }
 

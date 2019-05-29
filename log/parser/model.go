@@ -15,6 +15,19 @@ const (
 	UrlStreamType    LogStreamType = 103
 )
 
+func WriterTypeToLogStreamType(wTp common.WriterType) (LogStreamType, error) {
+	switch wTp {
+	case common.StdOutWriter:
+		return StdOutStreamType, nil
+	case common.FileWriter:
+		return FileStreamType, nil
+	case common.UrlWriter:
+		return UrlStreamType, nil
+	default:
+		return 0, errors.New("Unkown Writer Type")
+	}
+}
+
 type LogStream interface {
 	Open() error
 	Close() error
@@ -31,21 +44,30 @@ type RotatePolicy struct {
 
 type _logStdOutStruct struct {
 	_logFormat common.StreamInOutFormat
+	converter  ConverterFunc
 }
 
 type _logFileStreamStruct struct {
-	file   string
-	format common.StreamInOutFormat
-	policy RotatePolicy
+	file      string
+	format    common.StreamInOutFormat
+	policy    RotatePolicy
+	converter ConverterFunc
 }
 
 type _logUrlStreamStruct struct {
-	url    string
-	format common.StreamInOutFormat
+	url       string
+	format    common.StreamInOutFormat
+	converter ConverterFunc
 }
 
 func (l *_logStdOutStruct) Open() error {
-	return nil
+	var err error = nil
+	defer func() {
+		r := recover()
+		err = r.(error)
+	}()
+	l.converter = getConverterByStreamInOutFormat(l._logFormat)
+	return err
 }
 
 func (l *_logStdOutStruct) Close() error {
@@ -53,8 +75,10 @@ func (l *_logStdOutStruct) Close() error {
 }
 
 func (l *_logStdOutStruct) Write(data interface{}) error {
-	var function ConverterFunc = getConverterByStreamInOutFormat(l._logFormat)
-	body, err := function(data)
+	if l.converter == nil {
+		return errors.New("Start Log Stream before write content")
+	}
+	body, err := l.converter(data)
 	if err != nil {
 		return err
 	}

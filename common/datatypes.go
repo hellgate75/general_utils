@@ -187,3 +187,61 @@ func StreamInOutFormatToString(format StreamInOutFormat) (string, error) {
 
 	return "", errors.New("common :: StringToStreamInOutFormat : Stream Input/Output format is undefined")
 }
+
+// Type WriterType describe any Writer Option in the cofiguration
+type WriterType string
+
+const (
+	// Stadard Output Writer Type
+	StdOutWriter WriterType = "StdOut"
+	// File Output Writer Type
+	FileWriter WriterType = "File"
+	// URL Output Writer Type
+	UrlWriter WriterType = "Url"
+)
+
+// Transform text in Writer Type.
+//
+// Parameters:
+//   text (string) Text to convert
+//
+// Returns:
+// common.WriterType Writer Type representing the text data or 0 anyway
+// error Any suitable error risen during code execution
+func StringToWriterType(text string) (WriterType, error) {
+	var testText = strings.ToLower(strings.TrimSpace(text))
+	if testText == "" {
+		return "", errors.New("common :: StringToWriterType : Empty input text")
+	}
+	switch testText {
+	case "stdout":
+		return StdOutWriter, nil
+	case "file":
+		return FileWriter, nil
+	case "url":
+		return UrlWriter, nil
+	}
+
+	return "", errors.New("common :: StringToWriterType : Writer Type is undefined")
+}
+
+// Transform Writer Type in representing text.
+//
+// Parameters:
+//   wType (common.WriterType) Writer Type
+//
+// Returns:
+// string Text representing the WriterType or 0 anyway
+// error Any suitable error risen during code execution
+func WriterTypeToString(wType WriterType) (string, error) {
+	switch wType {
+	case StdOutWriter:
+		return "StdOut", nil
+	case FileWriter:
+		return "File", nil
+	case UrlWriter:
+		return "Url", nil
+	}
+
+	return "", errors.New("common :: WriterTypeToString : Unknown Writer Type")
+}

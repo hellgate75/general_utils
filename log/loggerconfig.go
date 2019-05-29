@@ -2,47 +2,8 @@ package log
 
 import (
 	//	"encoding/xml"
-	"fmt"
-	"github.com/hellgate75/general_utils/errors"
-	"strings"
+	"github.com/hellgate75/general_utils/common"
 )
-
-// Type WriterType describe any Writer Option in the cofiguration
-type WriterType string
-
-const (
-	// Stadard Output Writer Type
-	StdOutWriter WriterType = "stdOut"
-	// File Output Writer Type
-	FileWriter WriterType = "file"
-	// URL Output Writer Type
-	UrlWriter WriterType = "url"
-)
-
-// Parse a String to Writer Type.
-//
-// Parameters:
-//   text (string) Text to parse
-//
-// Returns:
-// WriterType costant element
-// error Any suitable error risen during code execution
-
-func WriterTypeFromString(text string) (WriterType, error) {
-	if strings.TrimSpace(text) == "" {
-		return "", errors.New("logger::WriterTypeFromString::error : Empty input string")
-	}
-	value := strings.ToUpper(text)
-	switch value {
-	case "STDOUT":
-		return StdOutWriter, nil
-	case "FILE":
-		return FileWriter, nil
-	case "URL":
-		return UrlWriter, nil
-	}
-	return "", errors.New(fmt.Sprintf("logger::WriterTypeFromString::error : Invalid WriterType '%s'", text))
-}
 
 // Log File Appeder Element, describes Writer default log verbosity
 type LogAppender struct {
@@ -53,9 +14,10 @@ type LogAppender struct {
 
 // Log File Write, describes support where to write the logs
 type LogWriter struct {
-	WriterName  string     `yaml:"writerName" json:"writerName" xml:"writer-name"`
-	WriterType  WriterType `yaml:"writerType" json:"writerType" xml:"writer-type"`
-	Destination string     `yaml:"destination" json:"destination,omitempty" xml:"destination"`
+	WriterName     string                   `yaml:"writerName" json:"writerName" xml:"writer-name"`
+	WriterType     common.WriterType        `yaml:"writerType" json:"writerType" xml:"writer-type"`
+	WriterEncoding common.StreamInOutFormat `yaml:"writerEncoding" json:"writerEncoding" xml:"writer-encoding"`
+	Destination    string                   `yaml:"destination" json:"destination,omitempty" xml:"destination"`
 }
 
 //Log File filter, describes filters for packages and wildcat represent default verbosity for any package
@@ -64,7 +26,7 @@ type LogFilter struct {
 	Verbosity   string `yaml:"verbosity" json:"verbosity" xml:"verbosity"`
 }
 
-// Logger Configuration represents the defiition of a logger poiter
+// Loggerciguration represents the defiition of a logger poiter
 type LoggerInfo struct {
 	AppenderName string      `yaml:"appenderName" json:"appenderName,omitempty" xml:"appender-name"`
 	WriterName   string      `yaml:"writerName" json:"writerName" xml:"writer-name"`
