@@ -2,10 +2,12 @@ package log
 
 import (
 	"fmt"
+	"github.com/gookit/color"
 	"github.com/hellgate75/general_utils/common"
 	"github.com/hellgate75/general_utils/errors"
 	parser "github.com/hellgate75/general_utils/log/parser"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -218,8 +220,64 @@ func (l *_loggerEngineStruct) Start(conf LogConfig) {
 	l._runConfig()
 }
 
+func computePackageData(l *_loggerEngineStruct, writer LogWriter, appender LogAppender, pkgName string, pkgVerbosity LogLevel, warnings []string) {
+	var item LogMapItem
+	if _, ok := l.Map[pkgName]; ok {
+		//Update Item
+		item, _ = l.Map[pkgName]
+	} else {
+		//Create Item
+		item = LogMapItem{
+			DefaultVerbosity: pkgVerbosity,
+			Dists:            []LogMapDistItem{},
+			Streams:          []parser.LogStream{},
+		}
+
+		l.Map[pkgName] = item
+	}
+	//Update Item
+	lst, lstErr := parser.WriterTypeToLogStreamType(writer.WriterType)
+	if lstErr != nil {
+		//Log warning lstErr
+		lst = parser.StdOutStreamType
+		warnings = append(warnings, fmt.Sprintf("Lost In/Out Stream (%s), replaced with StdOut - throw clause : %s", writer.WriterType, lstErr.Error()))
+	}
+	streamIO, streamErr := parser.New(lst, writer.WriterEncoding)
+	if streamErr == nil {
+		//type LogMapItem struct {
+		//	DefaultVerbosity	LogLevel
+		//	Dists           	[]LogMapDistItem
+		//	Streams         	[]parser.LogStream
+		//}
+		format, _ := common.StreamInOutFormatToString(writer.WriterEncoding)
+		device, _ := common.WriterTypeToString(writer.WriterType)
+		item.Dists = append(item.Dists, LogMapDistItem{
+			Appender: appender,
+			Writer:   writer,
+			Format:   format,
+			Stream:   streamIO,
+			Device:   device,
+		})
+		item.Streams = append(item.Streams, streamIO)
+		item.DefaultVerbosity = pkgVerbosity
+		delete(l.Map, pkgName)
+		l.Map[pkgName] = item
+	} else {
+		//Log warning streamErr
+		warnings = append(warnings, fmt.Sprintf("Lost Logger (%s) - throw clause : %s", writer.WriterName, streamErr.Error()))
+	}
+
+}
+
 func (l *_loggerEngineStruct) _runConfig() {
 	l.Running = true
+	red := color.FgRed.Render
+	yellow := color.FgYellow.Render
+	gray := color.FgGray.Render
+	green := color.FgGreen.Render
+	lightRed := color.FgLightRed.Render
+	fmt.Println(gray("Logger for Go - Multiverse logger toolset. All right reserved. "))
+	fmt.Println(gray("Loading configuration data ..."))
 
 	var warnings []string
 
@@ -234,79 +292,66 @@ func (l *_loggerEngineStruct) _runConfig() {
 		writersMap[wtr.WriterName] = wtr
 	}
 
-	//loggerName := l.Config.LoggerName
-	//globalVerb, gVErr := StringToLogLevel(l.Config.Verbosity)
+	loggerName := l.Config.LoggerName
+	fmt.Println(gray("Logger name: "), lightRed(loggerName))
+	globalVerb, gVErr := StringToLogLevel(l.Config.Verbosity)
+	if gVErr != nil {
+		globalVerb = ERROR
+		warnings = append(warnings, fmt.Sprintf("Missing Global Verbosity <%s> in Log Config, setting default ERROR", l.Config.Verbosity))
+	}
+	fmt.Println(gray("Logger Global Verbosity: "), lightRed(LogLevelToString(globalVerb)))
 
 	for _, lgr := range l.Config.Loggers {
 		appenderName := lgr.AppenderName
 		writerName := lgr.WriterName
+		fmt.Println(gray("Looking for Appender: "), lightRed(appenderName))
+		fmt.Println(gray("Looking for Writer: "), lightRed(writerName))
 		appender, okAppender := appendersMap[appenderName]
 		writer, okWriter := writersMap[writerName]
 		if !okAppender {
 			//Missing appender
 			warnings = append(warnings, fmt.Sprintf("Missing Appender <%s> in Log Config", appenderName))
+			fmt.Println(red("Skipping logger: Appender : "), red(appenderName), red(" - Writer : "), red(writerName))
 		} else {
 			if !okWriter {
 				//Missing writer
 				warnings = append(warnings, fmt.Sprintf("Missing Writer <%s> in Log Config", writerName))
+				fmt.Println(red("Skipping logger: Appender : "), red(appenderName), red(" - Writer : "), red(writerName))
 			} else {
 				//All is fine
-				for _, fltr := range lgr.Filters {
-					pkgName := fltr.PackageName
-					pkgVerbosity, _ := StringToLogLevel(fltr.Verbosity)
-					var item LogMapItem
-					if _, ok := l.Map[pkgName]; ok {
-						//Update Item
-						item, _ = l.Map[pkgName]
-					} else {
-						//Create Item
-						item = LogMapItem{
-							DefaultVerbosity: pkgVerbosity,
-							Dists:            []LogMapDistItem{},
-							Streams:          []parser.LogStream{},
+				fmt.Println(gray("Logger/Appender state: "), green("ok!"))
+				filterLen := len(lgr.Filters)
+				fmt.Println(gray("Found package filers: "), lightRed(strconv.Itoa(filterLen)))
+				if filterLen > 0 {
+					for _, fltr := range lgr.Filters {
+						pkgName := fltr.PackageName
+						pkgVerbosity, pkgErr := StringToLogLevel(fltr.Verbosity)
+						if pkgErr != nil {
+							pkgVerbosity = ERROR
 						}
+						computePackageData(l, writer, appender, pkgName, pkgVerbosity, warnings)
+					}
 
-						l.Map[pkgName] = item
-					}
-					//Update Item
-					lst, lstErr := parser.WriterTypeToLogStreamType(writer.WriterType)
-					if lstErr != nil {
-						//Log warning lstErr
-						lst = parser.StdOutStreamType
-						warnings = append(warnings, fmt.Sprintf("Lost In/Out Stream (%s), replaced with StdOut - throw clause : %s", writer.WriterType, lstErr.Error()))
-					}
-					streamIO, streamErr := parser.New(lst, writer.WriterEncoding)
-					if streamErr == nil {
-						//						type LogMapItem struct {
-						//							DefaultVerbosity	LogLevel
-						//							Dists           	[]LogMapDistItem
-						//							Streams         	[]parser.LogStream
-						//						}
-						format, _ := common.StreamInOutFormatToString(writer.WriterEncoding)
-						device, _ := common.WriterTypeToString(writer.WriterType)
-						item.Dists = append(item.Dists, LogMapDistItem{
-							Appender: appender,
-							Writer:   writer,
-							Format:   format,
-							Stream:   streamIO,
-							Device:   device,
-						})
-						item.Streams = append(item.Streams, streamIO)
-						item.DefaultVerbosity = pkgVerbosity
-						delete(l.Map, pkgName)
-						l.Map[pkgName] = item
-					} else {
-						//Log warning streamErr
-						warnings = append(warnings, fmt.Sprintf("Lost Logger (%s) - throw clause : %s", writer.WriterName, streamErr.Error()))
-					}
+				} else {
+					pkgName := "*"
+					pkgVerbosity := globalVerb
+					computePackageData(l, writer, appender, pkgName, pkgVerbosity, warnings)
 				}
 
 			}
 		}
 	}
+	fmt.Println(gray("Configuration data loaded : "), green("Done!!"))
+	if len(warnings) == 0 {
+		fmt.Println(gray("Warnings : "), green("None!!"))
+	} else {
+		fmt.Println(gray("Warnings : "), red(strconv.Itoa(len(warnings))))
+		for _, warn := range warnings {
+			fmt.Println(yellow(warn))
+		}
+	}
 
 	//TODO Prepare Config and run logger tasks
-
 }
 
 func (l *_loggerEngineStruct) Stop() {

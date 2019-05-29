@@ -10,6 +10,14 @@
   revision = "809d4375e1fb5bb262c159fc3ec2e7a86a8bfd28"
 
 [[projects]]
+  digest = "1:a0cc264456743e2c8f9798dbe251c28bacbc3e60a4fbcf140997e8aaae5a0cf8"
+  name = "github.com/gookit/color"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "55e2fd773974775d0bda6daef1fe74bd47ccc260"
+  version = "v1.1.7"
+
+[[projects]]
   digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
@@ -22,6 +30,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/blakesmith/ar",
+    "github.com/gookit/color",
     "gopkg.in/yaml.v2",
   ]
   solver-name = "gps-cdcl"
