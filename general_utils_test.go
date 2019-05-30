@@ -15,6 +15,9 @@ import (
 var preparedTestResources bool = false
 
 func _getTestConfig1() log.LogConfig {
+	path := fmt.Sprintf("%s%c%s", streams.GetCurrentPath(), os.PathSeparator, "temp")
+	os.MkdirAll(path, os.ModeAppend)
+	file := fmt.Sprintf("%s%cSampleLogger.log", path, os.PathSeparator)
 	return log.LogConfig{
 		LoggerName: "myLogger",
 		Verbosity:  "debug",
@@ -30,11 +33,12 @@ func _getTestConfig1() log.LogConfig {
 				WriterName:     "stdOutWriter",
 				WriterType:     common.StdOutWriter,
 				WriterEncoding: common.PlainTextFormat,
+				Destination:    "",
 			},
 			log.LogWriter{
 				WriterName:     "fileWriter",
-				WriterType:     log.FileWriter,
-				Destination:    "C:\\sample-log.log",
+				WriterType:     common.FileWriter,
+				Destination:    file,
 				WriterEncoding: common.JsonFormat,
 			},
 		},
@@ -90,34 +94,6 @@ func WriteTestResources() bool {
 	}
 	preparedTestResources = true
 	return true
-}
-
-func TestInitSimpleLoggerEngine(t *testing.T) {
-	WriteTestResources()
-	DestroyLoggerEngine()
-	_logTestState = true
-	_logTestOutChan = make(chan interface{})
-	InitSimpleLoggerEngine(log.DEBUG)
-	InitializeLoggers()
-	logger, _ := log.New("test")
-	var testMessage string = "Test1"
-	var val interface{}
-	go func() {
-		select {
-		case val = <-_logTestOutChan:
-			if strings.Index(fmt.Sprintf("%v", val), testMessage) < 0 {
-				t.Fatal("Unable to read proper log")
-			}
-		case <-time.After(5 * time.Millisecond):
-			val = "xxxxxxxxxxxx"
-		default:
-			val = "xxxxxxxxxxxx"
-		}
-	}()
-	logger.Debug(testMessage)
-	time.Sleep(5 * time.Millisecond)
-	_logTestState = false
-	close(_logTestOutChan)
 }
 
 func TestInitSimpleLoggerEngine(t *testing.T) {

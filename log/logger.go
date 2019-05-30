@@ -195,11 +195,6 @@ type Logger interface {
 
 const DEFAULT_VERBOSITY LogLevel = INFO
 
-func finalizeLogMapItem(lmi *LogMapItem) {
-	for _, stream := range lmi.Streams {
-		stream.Close()
-	}
-}
 func (l *_loggerEngineStruct) _writeLog(level LogLevel, value interface{}, err error, name string) {
 
 	writeLogToStream := func(stream *parser.LogStream, level LogLevel, name string, logText string) {
@@ -254,9 +249,8 @@ func (l *_loggerEngineStruct) _writeLog(level LogLevel, value interface{}, err e
 				Dists:            dists,
 				Streams:          streams,
 			}
-			runtime.SetFinalizer(item, finalizeLogMapItem)
+			runtime.SetFinalizer(&item, finalizeLogMapItem)
 
-			runtime.SetFinalizer(item, finalizeLogMapItem)
 			l.Lock()
 			l.Map["*"] = item
 			l.Unlock()
@@ -268,30 +262,62 @@ func (l *_loggerEngineStruct) _writeLog(level LogLevel, value interface{}, err e
 		//Key found
 	}
 	var dist LogMapDistItem
+	var defaultVerbosity LogLevel = item.DefaultVerbosity
 	for _, dist = range item.Dists {
 		var LogDate time.Time = time.Now()
 		logLevel, err := LogLevelToString(level)
 		if err != nil {
 			logLevel = "INFO "
 		}
+		var allowedVerbosity LogLevel
+		verbFact, err := StringToLogLevel(dist.Appender.Verbosity)
+		if err != nil {
+			allowedVerbosity = defaultVerbosity
+		} else {
+			allowedVerbosity = verbFact
+		}
 
+		if level < allowedVerbosity {
+			continue
+		}
+
+		var dateFormat string = dist.Appender.DateFormat
+		if "" == strings.TrimSpace(dateFormat) {
+			dateFormat = defaultDateFormat
+		}
 		//TODO: Verificare : livello log sia accettato. Per gli StdOutWriter usare colori per livello log
 
 		if dist.Writer.WriterType == common.StdOutWriter {
+			var colouring func(...interface{}) string
+			switch level {
+			case DEBUG:
+				colouring = color.FgGray.Render
+			case INFO:
+				colouring = color.FgWhite.Render
+			case WARN:
+				colouring = color.FgYellow.Render
+			case ERROR:
+				colouring = color.FgRed.Render
+			case FATAL:
+				colouring = color.FgRed.Render
+			default:
+				colouring = color.FgDarkGray.Render
+			}
+
 			if value == nil {
-				writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %s", LogDate.Format("2006-01-02 15:04:05.000"), logLevel, name, err.Error()))
+				writeLogToStream(dist.Stream, level, name, colouring(fmt.Sprintf("[%s] %s - %s - %s", LogDate.Format(dateFormat), logLevel, name, err.Error())))
 			} else if err == nil {
-				writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %v", LogDate.Format("2006-01-02 15:04:05.000"), logLevel, name, value))
+				writeLogToStream(dist.Stream, level, name, colouring(fmt.Sprintf("[%s] %s - %s - %v", LogDate.Format(dateFormat), logLevel, name, value)))
 			} else {
-				writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %v - error : %s", LogDate.Format("2006-01-02 15:04:05.000"), name, logLevel, value, err.Error()))
+				writeLogToStream(dist.Stream, level, name, colouring(fmt.Sprintf("[%s] %s - %s - %v - error : %s", LogDate.Format(dateFormat), name, logLevel, value, err.Error())))
 			}
 		} else {
 			if value == nil {
-				writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %s", LogDate.Format("2006-01-02 15:04:05.000"), logLevel, name, err.Error()))
+				writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %s", LogDate.Format(dateFormat), logLevel, name, err.Error()))
 			} else if err == nil {
-				writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %v", LogDate.Format("2006-01-02 15:04:05.000"), logLevel, name, value))
+				writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %v", LogDate.Format(dateFormat), logLevel, name, value))
 			} else {
-				writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %v - error : %s", LogDate.Format("2006-01-02 15:04:05.000"), name, logLevel, value, err.Error()))
+				writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %v - error : %s", LogDate.Format(dateFormat), name, logLevel, value, err.Error()))
 			}
 		}
 	}
@@ -305,6 +331,12 @@ func (l *_loggerEngineStruct) Log(level LogLevel, value interface{}, err error, 
 func (l *_loggerEngineStruct) Start(conf LogConfig) {
 	l.Config = conf
 	l._runConfigSetup()
+}
+
+func finalizeLogMapItem(lmi *LogMapItem) {
+	for _, stream := range lmi.Streams {
+		stream.Close()
+	}
 }
 
 func computePackageData(l *_loggerEngineStruct, writer LogWriter, appender LogAppender, pkgName string, pkgVerbosity LogLevel, warnings []string) []string {
@@ -321,7 +353,7 @@ func computePackageData(l *_loggerEngineStruct, writer LogWriter, appender LogAp
 			Dists:            []LogMapDistItem{},
 			Streams:          []parser.LogStream{},
 		}
-		runtime.SetFinalizer(item, finalizeLogMapItem)
+		runtime.SetFinalizer(&item, finalizeLogMapItem)
 
 		l.Map[pkgName] = item
 	}
@@ -345,7 +377,6 @@ func computePackageData(l *_loggerEngineStruct, writer LogWriter, appender LogAp
 		})
 		item.Streams = append(item.Streams, streamIO)
 		item.DefaultVerbosity = pkgVerbosity
-		runtime.SetFinalizer(item, finalizeLogMapItem)
 		l.Map[pkgName] = item
 	} else {
 		//Log warning streamErr
