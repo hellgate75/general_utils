@@ -7,6 +7,7 @@ import (
 	"github.com/hellgate75/general_utils/errors"
 	parser "github.com/hellgate75/general_utils/log/parser"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -98,17 +99,18 @@ type LogMapItem struct {
 
 type _loggerEngineStruct struct {
 	sync.RWMutex
-	level    LogLevel
-	Config   LogConfig
-	Running  bool
-	TestChan *chan interface{}
-	Map      map[string]LogMapItem
+	level           LogLevel
+	Config          LogConfig
+	globalVerbosity LogLevel
+	Running         bool
+	TestChan        *chan interface{}
+	Map             map[string]LogMapItem
 }
 
 type LogMapDistItem struct {
 	Appender LogAppender
 	Writer   LogWriter
-	Stream   parser.LogStream
+	Stream   *parser.LogStream
 	Format   string
 	Device   string
 }
@@ -191,47 +193,135 @@ type Logger interface {
 	Debug(value interface{})
 }
 
-func (l *_loggerEngineStruct) _writeLog(level LogLevel, name string, logText interface{}) {
+const DEFAULT_VERBOSITY LogLevel = INFO
 
-	if l.TestChan == nil {
-		fmt.Println(logText)
-	} else {
-		*l.TestChan <- logText
+func finalizeLogMapItem(lmi *LogMapItem) {
+	for _, stream := range lmi.Streams {
+		stream.Close()
 	}
+}
+func (l *_loggerEngineStruct) _writeLog(level LogLevel, value interface{}, err error, name string) {
+
+	writeLogToStream := func(stream *parser.LogStream, level LogLevel, name string, logText string) {
+		if l.TestChan == nil {
+			(*stream).Write(logText)
+			//			fmt.Println(logText)
+		} else {
+			*l.TestChan <- logText
+		}
+	}
+
+	var defaultDateFormat string = "2006-01-02 15:04:05.000"
+	var defaultLogEncoding common.StreamInOutFormat = common.PlainTextFormat
+	var defaultLogSource parser.LogStreamType = parser.StdOutStreamType
+
+	l.RLock()
+	item, ok := l.Map[name]
+	l.RUnlock()
+	var streams []parser.LogStream = []parser.LogStream{}
+	var dists []LogMapDistItem = []LogMapDistItem{}
+	if !ok {
+		//Key not found
+		l.RLock()
+		item, ok = l.Map["*"]
+		l.RUnlock()
+		if !ok {
+			//No wildcat so proceeding with StdOut
+			stream, err := parser.New(defaultLogSource, defaultLogEncoding)
+			if err == nil {
+				streams = append(streams, stream)
+			}
+			verb, errVerb := LogLevelToString(l.globalVerbosity)
+			if errVerb != nil {
+				verb, _ = LogLevelToString(DEFAULT_VERBOSITY)
+			}
+			dists = append(dists, LogMapDistItem{
+				Appender: LogAppender{
+					AppenderName: "defaultAppender",
+					DateFormat:   defaultDateFormat,
+					Verbosity:    verb,
+				},
+				Writer: LogWriter{
+					WriterName:     "defaultWriter",
+					WriterType:     common.StdOutWriter,
+					Destination:    "",
+					WriterEncoding: common.PlainTextFormat,
+				},
+				Stream: &stream,
+			})
+			item := LogMapItem{
+				DefaultVerbosity: l.globalVerbosity,
+				Dists:            dists,
+				Streams:          streams,
+			}
+			runtime.SetFinalizer(item, finalizeLogMapItem)
+
+			runtime.SetFinalizer(item, finalizeLogMapItem)
+			l.Lock()
+			l.Map["*"] = item
+			l.Unlock()
+
+		} else {
+			//Found Wildcat Key
+		}
+	} else {
+		//Key found
+	}
+	var dist LogMapDistItem
+	for _, dist = range item.Dists {
+		var LogDate time.Time = time.Now()
+		logLevel, err := LogLevelToString(level)
+		if err != nil {
+			logLevel = "INFO "
+		}
+
+		//TODO: Verificare : livello log sia accettato. Per gli StdOutWriter usare colori per livello log
+
+		if dist.Writer.WriterType == common.StdOutWriter {
+			if value == nil {
+				writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %s", LogDate.Format("2006-01-02 15:04:05.000"), logLevel, name, err.Error()))
+			} else if err == nil {
+				writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %v", LogDate.Format("2006-01-02 15:04:05.000"), logLevel, name, value))
+			} else {
+				writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %v - error : %s", LogDate.Format("2006-01-02 15:04:05.000"), name, logLevel, value, err.Error()))
+			}
+		} else {
+			if value == nil {
+				writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %s", LogDate.Format("2006-01-02 15:04:05.000"), logLevel, name, err.Error()))
+			} else if err == nil {
+				writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %v", LogDate.Format("2006-01-02 15:04:05.000"), logLevel, name, value))
+			} else {
+				writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %v - error : %s", LogDate.Format("2006-01-02 15:04:05.000"), name, logLevel, value, err.Error()))
+			}
+		}
+	}
+
 }
 
 func (l *_loggerEngineStruct) Log(level LogLevel, value interface{}, err error, name string) {
-	var LogDate time.Time = time.Now()
-	logLevel, err := LogLevelToString(level)
-	if err != nil {
-		logLevel = "INFO "
-	}
-	if value == nil {
-		l._writeLog(level, name, fmt.Sprintf("[%s] %s - %s - %s", LogDate.Format("2006-01-02 15:04:05.000"), logLevel, name, err.Error()))
-	} else if err == nil {
-		l._writeLog(level, name, fmt.Sprintf("[%s] %s - %s - %v", LogDate.Format("2006-01-02 15:04:05.000"), logLevel, name, value))
-	} else {
-		l._writeLog(level, name, fmt.Sprintf("[%s] %s - %s - %v - error : %s", LogDate.Format("2006-01-02 15:04:05.000"), name, logLevel, value, err.Error()))
-	}
+	l._writeLog(level, value, err, name)
 }
 
 func (l *_loggerEngineStruct) Start(conf LogConfig) {
 	l.Config = conf
-	l._runConfig()
+	l._runConfigSetup()
 }
 
-func computePackageData(l *_loggerEngineStruct, writer LogWriter, appender LogAppender, pkgName string, pkgVerbosity LogLevel, warnings []string) {
+func computePackageData(l *_loggerEngineStruct, writer LogWriter, appender LogAppender, pkgName string, pkgVerbosity LogLevel, warnings []string) []string {
+	//	var defaultDateFormat string = "2006-01-02 15:04:05.000"
 	var item LogMapItem
 	if _, ok := l.Map[pkgName]; ok {
 		//Update Item
 		item, _ = l.Map[pkgName]
+		delete(l.Map, pkgName)
 	} else {
 		//Create Item
 		item = LogMapItem{
-			DefaultVerbosity: pkgVerbosity,
+			DefaultVerbosity: l.globalVerbosity,
 			Dists:            []LogMapDistItem{},
 			Streams:          []parser.LogStream{},
 		}
+		runtime.SetFinalizer(item, finalizeLogMapItem)
 
 		l.Map[pkgName] = item
 	}
@@ -244,32 +334,27 @@ func computePackageData(l *_loggerEngineStruct, writer LogWriter, appender LogAp
 	}
 	streamIO, streamErr := parser.New(lst, writer.WriterEncoding)
 	if streamErr == nil {
-		//type LogMapItem struct {
-		//	DefaultVerbosity	LogLevel
-		//	Dists           	[]LogMapDistItem
-		//	Streams         	[]parser.LogStream
-		//}
 		format, _ := common.StreamInOutFormatToString(writer.WriterEncoding)
 		device, _ := common.WriterTypeToString(writer.WriterType)
 		item.Dists = append(item.Dists, LogMapDistItem{
 			Appender: appender,
 			Writer:   writer,
 			Format:   format,
-			Stream:   streamIO,
+			Stream:   &streamIO,
 			Device:   device,
 		})
 		item.Streams = append(item.Streams, streamIO)
 		item.DefaultVerbosity = pkgVerbosity
-		delete(l.Map, pkgName)
+		runtime.SetFinalizer(item, finalizeLogMapItem)
 		l.Map[pkgName] = item
 	} else {
 		//Log warning streamErr
 		warnings = append(warnings, fmt.Sprintf("Lost Logger (%s) - throw clause : %s", writer.WriterName, streamErr.Error()))
 	}
-
+	return warnings
 }
 
-func (l *_loggerEngineStruct) _runConfig() {
+func (l *_loggerEngineStruct) _runConfigSetup() {
 	l.Running = true
 	red := color.FgRed.Render
 	yellow := color.FgYellow.Render
@@ -296,9 +381,11 @@ func (l *_loggerEngineStruct) _runConfig() {
 	fmt.Println(gray("Logger name: "), lightRed(loggerName))
 	globalVerb, gVErr := StringToLogLevel(l.Config.Verbosity)
 	if gVErr != nil {
-		globalVerb = ERROR
-		warnings = append(warnings, fmt.Sprintf("Missing Global Verbosity <%s> in Log Config, setting default ERROR", l.Config.Verbosity))
+		globalVerb = DEFAULT_VERBOSITY
+		defVerbStr, _ := LogLevelToString(DEFAULT_VERBOSITY)
+		warnings = append(warnings, fmt.Sprintf("Missing Global Verbosity <%s> in Log Config, setting default %s", l.Config.Verbosity, defVerbStr))
 	}
+	l.globalVerbosity = globalVerb
 	fmt.Println(gray("Logger Global Verbosity: "), lightRed(LogLevelToString(globalVerb)))
 
 	for _, lgr := range l.Config.Loggers {
@@ -327,15 +414,15 @@ func (l *_loggerEngineStruct) _runConfig() {
 						pkgName := fltr.PackageName
 						pkgVerbosity, pkgErr := StringToLogLevel(fltr.Verbosity)
 						if pkgErr != nil {
-							pkgVerbosity = ERROR
+							pkgVerbosity = DEFAULT_VERBOSITY
 						}
-						computePackageData(l, writer, appender, pkgName, pkgVerbosity, warnings)
+						warnings = computePackageData(l, writer, appender, pkgName, pkgVerbosity, warnings)
 					}
 
 				} else {
 					pkgName := "*"
 					pkgVerbosity := globalVerb
-					computePackageData(l, writer, appender, pkgName, pkgVerbosity, warnings)
+					warnings = computePackageData(l, writer, appender, pkgName, pkgVerbosity, warnings)
 				}
 
 			}
@@ -487,6 +574,8 @@ func InitStaticLoggerEngine(verbosity LogLevel) {
 	InitStaticTestLoggerEngine(verbosity, nil)
 }
 
+const defaultDateFormat string = "2006-01-02 15:04:05.000"
+
 // Istantiate global simple test Logger from verbosity, writing to passed channel the log instead the StdOut
 //
 // Parameters:
@@ -498,6 +587,36 @@ func InitStaticTestLoggerEngine(verbosity LogLevel, testChan *chan interface{}) 
 			_loggerEng.Stop()
 		}
 		_loggerEng = getEngine(verbosity, testChan)
+		if testChan == nil {
+			//			writerEncoding, _ := common.StreamInOutFormatToString(common.PlainTextFormat)
+			//			writerType, _ := common.WriterTypeToString(common.StdOutWriter)
+			verb, _ := LogLevelToString(verbosity)
+			_loggerEng.Start(LogConfig{
+				Appenders: []LogAppender{
+					LogAppender{
+						AppenderName: "StdOutAppender",
+						DateFormat:   defaultDateFormat,
+						Verbosity:    verb,
+					},
+				},
+				Writers: []LogWriter{
+					LogWriter{
+						WriterName:     "StdOutWriter",
+						WriterType:     common.StdOutWriter,
+						WriterEncoding: common.PlainTextFormat,
+						Destination:    "",
+					},
+				},
+				LoggerName: "StdOutLogger",
+				Loggers: []LoggerInfo{
+					LoggerInfo{
+						AppenderName: "StdOutAppender",
+						WriterName:   "StdOutWriter",
+						Filters:      []LogFilter{},
+					},
+				},
+			})
+		}
 	}
 }
 
@@ -520,5 +639,8 @@ func InitStaticTestLoggerEngineFromConfig(config LogConfig, testChan *chan inter
 			_loggerEng.Stop()
 		}
 		_loggerEng, _ = getEngineFromConfig(config, testChan)
+		if testChan == nil {
+			_loggerEng.Start(config)
+		}
 	}
 }
