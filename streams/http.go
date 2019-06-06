@@ -51,7 +51,7 @@ func DownloadFile(filepath string, url string) error {
 // Returns:
 //   []byte Bytes contained in the remote support
 //   error Any suitable error risen during code execution
-func DownloadFileAsByteArray(filepath string, url string) ([]byte, error) {
+func DownloadFileAsByteArray(url string) ([]byte, error) {
 
 	// Get the data
 	resp, err := http.Get(url)

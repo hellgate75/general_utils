@@ -274,7 +274,7 @@ func TestCustomLoggerLevelBlocking(t *testing.T) {
 	go func() {
 		select {
 		case val = <-log.LogOutChan:
-			fmt.Println("4.", val)
+			fmt.Println("3.", val)
 			if strings.Index(fmt.Sprintf("%v", val), testMessage) < 0 {
 				err = errors.New("Unable to read proper log")
 			} else {

@@ -293,3 +293,94 @@ func NewMessageQueue(messageReadTimeout time.Duration) MessageQueue {
 	return &q
 
 }
+
+type echoBridgeStruct struct {
+	inOutBridgeChan chan common.Message
+	echoBridgeChan  *chan common.Message
+	running         bool
+	initialized     bool
+	timeout         time.Duration
+	echoTimeout     time.Duration
+}
+
+func (b *echoBridgeStruct) init(echoBridgeChan *chan common.Message, timeout time.Duration, echoTimeout time.Duration) {
+	if b.initialized {
+		return
+	}
+	b.inOutBridgeChan = make(chan common.Message)
+	b.echoBridgeChan = echoBridgeChan
+	b.initialized = true
+	b.running = false
+	b.timeout = timeout
+	b.echoTimeout = echoTimeout
+}
+
+func (b *echoBridgeStruct) Name() string {
+	return "Echo R/W Bridge"
+}
+func (b *echoBridgeStruct) Open() error {
+	b.running = true
+	//Reading
+	go func() {
+		for b.running {
+			select {
+			case msg := <-b.inOutBridgeChan:
+				*b.echoBridgeChan <- msg
+			case <-time.After(b.timeout):
+				if logger != nil {
+					logger.Debug(fmt.Sprintf("EchoTestBridge::ReadFromChannel::warn Timeout <%d s> reached!!", b.timeout))
+				}
+			}
+		}
+	}()
+	//Writing
+	go func() {
+		for b.running {
+			select {
+			case msg := <-*b.echoBridgeChan:
+				b.inOutBridgeChan <- msg
+			case <-time.After(b.echoTimeout):
+				if logger != nil {
+					logger.Debug(fmt.Sprintf("EchoTestBridge::ReadFromEchoChannel::warn Timeout <%d s> reached!!", b.echoTimeout))
+				}
+			}
+		}
+	}()
+	return nil
+}
+func (b *echoBridgeStruct) Close() error {
+	b.running = false
+	return nil
+}
+func (b *echoBridgeStruct) IsOpen() bool {
+	return b.running
+}
+func (b *echoBridgeStruct) GetInOutChannel() *chan common.Message {
+	return &b.inOutBridgeChan
+}
+func (b *echoBridgeStruct) GetBridgeType() BridgeType {
+	return ReadWrite
+}
+
+//Creates a New Message Queue
+//
+// Parameters:
+//   messageReadTimeout (time.Duration) Timeout before reset the listening on each of Bridges (infinite if <= 0)
+// Returns:
+//   Message Queue New brand element
+func NewEchoMessageBridge(echoBridgeChan *chan common.Message, messageReadTimeout time.Duration, echoMessageReadTimeout time.Duration) MessageBridge {
+	var bridge echoBridgeStruct = echoBridgeStruct{}
+	runtime.SetFinalizer(&bridge, func(qs *echoBridgeStruct) {
+		defer func() {
+			err := recover()
+			if logger != nil {
+				logger.Error(err.(error))
+			}
+		}()
+		qs.Close()
+		close(qs.inOutBridgeChan)
+	})
+	bridge.init(echoBridgeChan, messageReadTimeout, echoMessageReadTimeout)
+	return &bridge
+
+}

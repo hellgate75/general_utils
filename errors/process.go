@@ -30,8 +30,8 @@ func (e *processErrorStruct) State() utils.ProcessState {
 
 func NewProcess(text string, pid utils.PID, processState utils.ProcessState) processError {
 	return &processErrorStruct{
-		text,
-		pid,
-		processState,
+		text:  text,
+		pid:   pid,
+		state: processState,
 	}
 }

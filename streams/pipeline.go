@@ -67,15 +67,11 @@ func (this *pipelineStruct) Read(timeout time.Duration) (common.Type, error) {
 			return res, nil
 		case <-time.After(timeout):
 			return nil, errors.New(fmt.Sprintf("Timeout %v reached, stop reading messages", timeout))
-		default:
-			return nil, errors.New("No message read from the pipeline")
 		}
 	} else {
 		select {
 		case res := <-this._out:
 			return res, nil
-		default:
-			return nil, errors.New("No message read from the pipeline")
 		}
 	}
 }

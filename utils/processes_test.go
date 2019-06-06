@@ -54,6 +54,8 @@ func TestProcessManagerChannels(t *testing.T) {
 		}
 
 	}
+	//	fmt.Println(fmt.Sprintf("Process Output : %v", pm.Status()))
+	//	fmt.Println(fmt.Sprintf("DONE : %v", DONE))
 	if pm.Status() != DONE {
 		t.Fatal("ProcessManager::error : Unable to Complete tasks")
 	}

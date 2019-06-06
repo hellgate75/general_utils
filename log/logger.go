@@ -48,7 +48,7 @@ func StringToLogLevel(text string) (LogLevel, error) {
 	if strings.TrimSpace(text) == "" {
 		return 0, errors.New("logger::StringToLogLevel::error : Empty input string")
 	}
-	value := strings.ToUpper(text)
+	value := strings.TrimSpace(strings.ToUpper(text))
 	switch value {
 	case "DEBUG":
 		return DEBUG, nil
@@ -234,8 +234,9 @@ func (l *_loggerEngineStruct) _writeLog(level LogLevel, value interface{}, err e
 				streams = append(streams, stream)
 			}
 			verb, errVerb := LogLevelToString(l.globalVerbosity)
+			fmt.Println(fmt.Sprintf("Global Verbosity : %v -> %s", l.globalVerbosity, verb))
 			if errVerb != nil {
-				verb, _ = LogLevelToString(DEFAULT_VERBOSITY)
+				verb, err = LogLevelToString(DEFAULT_VERBOSITY)
 			}
 			dists = append(dists, LogMapDistItem{
 				Appender: LogAppender{
@@ -278,11 +279,13 @@ func (l *_loggerEngineStruct) _writeLog(level LogLevel, value interface{}, err e
 		}
 		var allowedVerbosity LogLevel
 		verbFact, err := StringToLogLevel(dist.Appender.Verbosity)
-		if err != nil {
+		if err != nil || verbFact < defaultVerbosity {
 			allowedVerbosity = defaultVerbosity
 		} else {
 			allowedVerbosity = verbFact
 		}
+		fmt.Println(color.Red(fmt.Sprintf("[Logger Engine]::out Verbosity:: error: %v - verbFact: %v", err, verbFact)))
+		fmt.Println(color.Red(fmt.Sprintf("[Logger Engine]::out Verbosity:: defaultVerbosity: %v - verbFact: %v", defaultVerbosity, verbFact)))
 		fmt.Println(color.Red(fmt.Sprintf("[Logger Engine]::out Verbosity:: Allowance: %v - Current: %v", allowedVerbosity, level)))
 
 		if level >= allowedVerbosity {
