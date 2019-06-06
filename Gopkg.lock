@@ -10,12 +10,12 @@
   revision = "809d4375e1fb5bb262c159fc3ec2e7a86a8bfd28"
 
 [[projects]]
-  digest = "1:a0cc264456743e2c8f9798dbe251c28bacbc3e60a4fbcf140997e8aaae5a0cf8"
-  name = "github.com/gookit/color"
+  digest = "1:ba852707958e39694e7f64328008287892adf9b1aed0174480e2f50e0c23e521"
+  name = "github.com/logrusorgru/aurora"
   packages = ["."]
   pruneopts = "UT"
-  revision = "55e2fd773974775d0bda6daef1fe74bd47ccc260"
-  version = "v1.1.7"
+  revision = "21d75270181e0436fee7bd58b991c212cf309068"
+  version = "v2.0"
 
 [[projects]]
   digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
@@ -30,7 +30,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/blakesmith/ar",
-    "github.com/gookit/color",
+    "github.com/logrusorgru/aurora",
     "gopkg.in/yaml.v2",
   ]
   solver-name = "gps-cdcl"

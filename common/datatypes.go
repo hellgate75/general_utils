@@ -8,6 +8,9 @@ import (
 // Generic Type
 type Type interface{}
 
+// Generic Message
+type Message Type
+
 //Storage Unit representing type
 type StorageUnit int
 

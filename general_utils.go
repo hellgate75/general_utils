@@ -9,6 +9,7 @@ import (
 	"github.com/hellgate75/general_utils/parsers"
 	logger "github.com/hellgate75/general_utils/parsers/logger"
 	streams "github.com/hellgate75/general_utils/streams"
+	color "github.com/logrusorgru/aurora"
 	"os"
 	"strings"
 )
@@ -18,12 +19,24 @@ const (
 	logFileName string = "log4go"
 )
 
+var yellowColor func(interface{}) color.Value = color.Yellow
+
 var (
 	logFileExtensions []string = []string{"yaml", "json", "xml"}
 )
 
-var _logTestState bool = false
-var _logTestOutChan chan interface{}
+func EnableLogChanMode() *chan interface{} {
+	log.LogChanEnabled = true
+	log.LogOutChan = make(chan interface{})
+	return &log.LogOutChan
+}
+
+func DisableLogChanMode() {
+	log.LogChanEnabled = false
+	log.LogOutChan = nil
+}
+
+var redColor func(interface{}) color.Value = color.Red
 
 func findFileInPath(folder string, fileName string, extensions []string) (string, string, error) {
 	currentPath := streams.GetCurrentPath()
@@ -60,8 +73,8 @@ func decomposeFilePath(filePath string) (string, string, []string, error) {
 	var file string = ""
 	separator := fmt.Sprintf("%c", os.PathSeparator)
 
-	fmt.Println("original path: " + filePath)
-	fmt.Println("separator: " + separator)
+	fmt.Println("original path: ", filePath)
+	fmt.Println("separator: ", separator)
 
 	var idx1 int = strings.LastIndex(filePath, separator)
 	var idx2 int = strings.LastIndex(filePath, ".")
@@ -80,6 +93,8 @@ func decomposeFilePath(filePath string) (string, string, []string, error) {
 // Destroys and unregisters Logger.
 func DestroyLoggerEngine() {
 	log.ResetStaticLoggerEngine()
+	log.LogOutChan = nil
+	log.LogChanEnabled = false
 }
 
 // Initializes and registers Logger for StdOut.
@@ -87,11 +102,10 @@ func DestroyLoggerEngine() {
 // Params:
 //   verbosity (log.LogLevel) Log verbosity level
 func InitSimpleLoggerEngine(verbosity log.LogLevel) {
-	if _logTestState {
-		log.InitStaticTestLoggerEngine(verbosity, &_logTestOutChan)
-	} else {
-		log.InitStaticLoggerEngine(verbosity)
+	if log.LogChanEnabled && log.LogOutChan != nil {
+		fmt.Println(yellowColor("Logger :: Entering in test mode ..."))
 	}
+	log.InitStaticLoggerEngine(verbosity)
 }
 
 // Initializes and registers full Logger from base configuration file.
@@ -112,14 +126,10 @@ func InitDeviceLoggerEngine() error {
 	if err != nil {
 		return err
 	}
-	if _logTestState {
-		log.InitStaticTestLoggerEngineFromConfig(*conf, &_logTestOutChan)
-	} else {
-		log.InitStaticLoggerEngineFromConfig(*conf)
+	if log.LogChanEnabled && log.LogOutChan != nil {
+		fmt.Println(yellowColor("Logger :: Entering in test mode ..."))
 	}
-	if err != nil {
-		return err
-	}
+	log.InitStaticLoggerEngineFromConfig(*conf)
 	return nil
 }
 
@@ -150,11 +160,11 @@ func InitCustomLoggerEngine(filePath string) error {
 	if err != nil {
 		return err
 	}
-	if _logTestState {
-		log.InitStaticTestLoggerEngineFromConfig(*conf, &_logTestOutChan)
-	} else {
-		log.InitStaticLoggerEngineFromConfig(*conf)
+	fmt.Println(yellowColor(fmt.Sprintf("Logger :: LogOutChan : %v", log.LogOutChan)))
+	if log.LogChanEnabled && log.LogOutChan != nil {
+		fmt.Println(yellowColor("Logger :: Entering in test mode ..."))
 	}
+	log.InitStaticLoggerEngineFromConfig(*conf)
 	return nil
 }
 

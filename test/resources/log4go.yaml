@@ -1,0 +1,24 @@
+loggerName: myLogger
+rootVerbosity: info
+appender:
+- appenderName: standardAppender
+  defaulVerbosity: info
+  dateFormat: "2006-01-02 15:04:05.000"
+writer:
+- writerName: stdOutWriter
+  writerType: StdOut
+  writerEncoding: 11
+  destination: ""
+- writerName: fileWriter
+  writerType: File
+  writerEncoding: 12
+  destination: C:\Users\TORELFA\go\src\github.com\hellgate75\general_utils\temp\SampleLogger.log
+logger:
+- appenderName: standardAppender
+  writerName: stdOutWriter
+  filter: []
+- appenderName: standardAppender
+  writerName: fileWriter
+  filter:
+  - packageName: test
+    verbosity: info

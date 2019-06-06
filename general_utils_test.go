@@ -1,6 +1,7 @@
 package general_utils
 
 import (
+	"errors"
 	"fmt"
 	"github.com/hellgate75/general_utils/common"
 	"github.com/hellgate75/general_utils/log"
@@ -14,17 +15,19 @@ import (
 
 var preparedTestResources bool = false
 
+var logTestModeEnabled bool = false
+
 func _getTestConfig1() log.LogConfig {
 	path := fmt.Sprintf("%s%c%s", streams.GetCurrentPath(), os.PathSeparator, "temp")
 	os.MkdirAll(path, os.ModeAppend)
 	file := fmt.Sprintf("%s%cSampleLogger.log", path, os.PathSeparator)
 	return log.LogConfig{
 		LoggerName: "myLogger",
-		Verbosity:  "debug",
+		Verbosity:  "info",
 		Appenders: []log.LogAppender{
 			log.LogAppender{
 				AppenderName: "standardAppender",
-				Verbosity:    "debug",
+				Verbosity:    "info",
 				DateFormat:   "2006-01-02 15:04:05.000",
 			},
 		},
@@ -53,7 +56,7 @@ func _getTestConfig1() log.LogConfig {
 				WriterName:   "fileWriter",
 				Filters: []log.LogFilter{
 					log.LogFilter{
-						PackageName: "main",
+						PackageName: "test",
 						Verbosity:   "info",
 					},
 				},
@@ -62,12 +65,39 @@ func _getTestConfig1() log.LogConfig {
 	}
 }
 
+var TraverseFileFunc func(path string, info os.FileInfo, err error) error
+
+func _destroyFolder(path string) {
+	//	filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+	//		os.RemoveAll(path)
+	//		return nil
+	//	})
+	err := os.RemoveAll(path)
+	if err != nil {
+		fmt.Println("_destroyFolder() - error : ", err.Error())
+	} else {
+		os.Remove(path)
+	}
+
+}
+
+func _destroyTestConfig1() {
+	path := fmt.Sprintf("%s%c%s", streams.GetCurrentPath(), os.PathSeparator, "temp")
+	_destroyFolder(path)
+}
+
+func ClearTestResources() bool {
+	_destroyTestConfig1()
+	preparedTestResources = false
+	return true
+}
+
 func WriteTestResources() bool {
 	if preparedTestResources {
 		return false
 	}
 	InitSimpleLoggerEngine(log.DEBUG)
-	InitializeLoggers()
+	//	InitializeLoggers()
 	//	logManager, _ := log.New("main")
 	//	logManager.Debug("I will survive")
 	var config log.LogConfig = _getTestConfig1()
@@ -97,29 +127,174 @@ func WriteTestResources() bool {
 }
 
 func TestInitSimpleLoggerEngine(t *testing.T) {
-	WriteTestResources()
-	DestroyLoggerEngine()
-	_logTestState = true
-	_logTestOutChan = make(chan interface{})
-	InitSimpleLoggerEngine(log.DEBUG)
-	InitializeLoggers()
+	testing.Verbose()
+	defer func() {
+		logTestModeEnabled = false
+		DestroyLoggerEngine()
+		DisableLogChanMode()
+	}()
+	EnableLogChanMode()
+	InitSimpleLoggerEngine(log.INFO)
+	//	InitializeLoggers()
 	logger, _ := log.New("test")
 	var testMessage string = "Test1"
 	var val interface{}
+	var err error
 	go func() {
 		select {
-		case val = <-_logTestOutChan:
+		case val = <-log.LogOutChan:
+			fmt.Println("1.", val)
 			if strings.Index(fmt.Sprintf("%v", val), testMessage) < 0 {
-				t.Fatal("Unable to read proper log")
+				err = errors.New("Unable to read proper log")
+			} else {
+				logTestModeEnabled = false
 			}
-		case <-time.After(5 * time.Millisecond):
-			val = "xxxxxxxxxxxx"
-		default:
-			val = "xxxxxxxxxxxx"
+		case <-time.After(time.Second):
+			err = errors.New("Timeout reached")
+			//		default:
+			//			err = errors.New("No message")
 		}
 	}()
-	logger.Debug(testMessage)
-	time.Sleep(5 * time.Millisecond)
-	_logTestState = false
-	close(_logTestOutChan)
+	logTestModeEnabled = true
+	logger.Info(testMessage)
+	for logTestModeEnabled {
+		if err != nil {
+			logTestModeEnabled = false
+			t.Fatal(err.Error())
+		}
+	}
+}
+
+func TestSimpleLoggerLevelBlocking(t *testing.T) {
+	defer func() {
+		logTestModeEnabled = false
+		DestroyLoggerEngine()
+		DisableLogChanMode()
+	}()
+	EnableLogChanMode()
+	InitSimpleLoggerEngine(log.INFO)
+	//	InitializeLoggers()
+	logger, _ := log.New("test")
+	var testMessage string = "Test0"
+	var testMessage2 string = "Test1"
+	var val interface{}
+	var err error
+	go func() {
+		select {
+		case val = <-log.LogOutChan:
+			fmt.Println("2.", val)
+			if strings.Index(fmt.Sprintf("%v", val), testMessage) < 0 {
+				err = errors.New("Unable to read proper log")
+			} else {
+				logTestModeEnabled = false
+			}
+		case <-time.After(time.Second):
+			err = errors.New("Timeout reached")
+			//		default:
+			//			err = errors.New("No message")
+		}
+	}()
+	//Only Info should pass the logging and not the Debug message
+	//	time.Sleep(250 * time.Millisecond)
+	logTestModeEnabled = true
+	logger.Debug(testMessage2)
+	logger.Info(testMessage)
+	for logTestModeEnabled {
+		time.Sleep(500 * time.Millisecond)
+		if err != nil {
+			logTestModeEnabled = false
+			t.Fatal(err.Error())
+		}
+	}
+}
+
+func TestInitCustomLogger(t *testing.T) {
+	defer func() {
+		logTestModeEnabled = false
+		DestroyLoggerEngine()
+		ClearTestResources()
+		DisableLogChanMode()
+	}()
+	EnableLogChanMode()
+	WriteTestResources()
+	var path string = streams.GetCurrentPath() + fmt.Sprintf("%c", os.PathSeparator) + "test" + fmt.Sprintf("%c", os.PathSeparator) + "resources"
+	var filePath string = path + fmt.Sprintf("%c", os.PathSeparator) + logFileName + ".yaml"
+	InitCustomLoggerEngine(filePath)
+	//	InitializeLoggers()
+	logger, _ := log.New("test")
+	var testMessage string = "Test0"
+	var val interface{}
+	var err error
+	go func() {
+		select {
+		case val = <-log.LogOutChan:
+			fmt.Println("3.", val)
+			if strings.Index(fmt.Sprintf("%v", val), testMessage) < 0 {
+				err = errors.New("Unable to read proper log")
+			} else {
+				logTestModeEnabled = false
+			}
+		case <-time.After(time.Second):
+			err = errors.New("Timeout reached")
+			//		default:
+			//			err = errors.New("No message")
+		}
+	}()
+	//Only Info should pass the logging and not the Debug message
+	//	time.Sleep(250 * time.Millisecond)
+	logTestModeEnabled = true
+	logger.Info(testMessage)
+	for logTestModeEnabled {
+		time.Sleep(500 * time.Millisecond)
+		if err != nil {
+			logTestModeEnabled = false
+			t.Fatal(err.Error())
+		}
+	}
+}
+
+func TestCustomLoggerLevelBlocking(t *testing.T) {
+	defer func() {
+		logTestModeEnabled = false
+		DestroyLoggerEngine()
+		ClearTestResources()
+		DisableLogChanMode()
+	}()
+	EnableLogChanMode()
+	WriteTestResources()
+	var path string = streams.GetCurrentPath() + fmt.Sprintf("%c", os.PathSeparator) + "test" + fmt.Sprintf("%c", os.PathSeparator) + "resources"
+	var filePath string = path + fmt.Sprintf("%c", os.PathSeparator) + logFileName + ".yaml"
+	InitCustomLoggerEngine(filePath)
+	//	InitializeLoggers()
+	logger, _ := log.New("test")
+	var testMessage string = "Test0"
+	var testMessage2 string = "Test1"
+	var val interface{}
+	var err error
+	go func() {
+		select {
+		case val = <-log.LogOutChan:
+			fmt.Println("4.", val)
+			if strings.Index(fmt.Sprintf("%v", val), testMessage) < 0 {
+				err = errors.New("Unable to read proper log")
+			} else {
+				logTestModeEnabled = false
+			}
+		case <-time.After(time.Second):
+			err = errors.New("Timeout reached")
+			//		default:
+			//			err = errors.New("No message")
+		}
+	}()
+	//Only Info should pass the logging and not the Debug message
+	logTestModeEnabled = true
+	logger.Debug(testMessage2)
+	logger.Info(testMessage)
+	for logTestModeEnabled {
+		time.Sleep(500 * time.Millisecond)
+		if err != nil {
+			logTestModeEnabled = false
+			t.Fatal(err.Error())
+		}
+	}
 }
