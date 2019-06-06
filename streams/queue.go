@@ -86,7 +86,9 @@ func (q *queueStruct) init() {
 }
 
 func (q *queueStruct) Write(m common.Type) error {
+	q.Lock()
 	q.inOutChan <- m
+	q.Unlock()
 	return nil
 }
 
@@ -98,14 +100,12 @@ func (q *queueStruct) Read() (common.Type, error) {
 			val = msg
 		}
 	} else {
-		//		q.RLock()
 		select {
 		case msg := <-q.inOutChan:
 			val = msg
 		case <-time.After(q.TimeOut):
 			return nil, errors.New("MessageQueue::Read::err Timeout reached")
 		}
-		//		q.RUnlock()
 	}
 	return val, nil
 }
@@ -259,6 +259,8 @@ func (q *messageQueueStruct) Start() error {
 }
 
 func (q *messageQueueStruct) Stop() error {
+	q.started = false
+	time.Sleep(time.Second)
 	return nil
 }
 
