@@ -226,7 +226,7 @@ func (q *messageQueueStruct) Start() error {
 				}(q, msg)
 			case <-time.After(q.internalTimeOut):
 				if logger != nil {
-					logger.Debug(fmt.Sprintf("MessageQueue::TransmitOutbound::warn Internal timeout of %8.4f s reached!!", (float64(q.internalTimeOut)/float64(time.Second)))))
+					logger.Debug(fmt.Sprintf("MessageQueue::TransmitOutbound::warn Internal timeout of %8.4f s reached!!", (float64(q.internalTimeOut) / float64(time.Second))))
 				}
 			}
 		}
