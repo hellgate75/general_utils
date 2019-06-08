@@ -28,6 +28,8 @@ const (
 	XML Encoding = 2
 	// YAML Encoding type
 	YAML Encoding = 3
+	// YAML Encoding type
+	YAML Encoding = 3
 )
 
 // Transform text to representing Encoding element.

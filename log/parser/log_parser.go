@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/binary"
+	"encoding/gob"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -30,6 +31,8 @@ func getConverterByStreamInOutFormat(format common.StreamInOutFormat) ConverterF
 		return _convertToBase64
 	case common.BinaryFormat:
 		return _convertToBinary
+	case common.GoStructFormat:
+		return _convertToGoFormat
 	default:
 		return _convertToPlainText
 	}
@@ -68,6 +71,16 @@ func _convertToBase64(text interface{}) ([]byte, error) {
 		return []byte{}, err
 	}
 	return writer.GetBytes()
+}
+
+func _convertToGoFormat(text interface{}) ([]byte, error) {
+	var buff bytes.Buffer
+	enc := gob.NewEncoder(&buff)
+	err := enc.Encode(text)
+	if err != nil {
+		return []byte{}, err
+	}
+	return buff.Bytes(), nil
 }
 
 func NewLocalWriter() LocalWriter {

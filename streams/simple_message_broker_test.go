@@ -7,19 +7,19 @@ import (
 	"time"
 )
 
-func TestNewPipeline(t *testing.T) {
+func TestNewSimpleMessageBroker(t *testing.T) {
 	var message common.Type = "TestPipeline"
-	pipeline := NewPipeline()
-	if !pipeline.IsOpen() {
-		pipeline.Open()
+	messageBroker := NewSimpleMessageBroker()
+	if !messageBroker.IsOpen() {
+		messageBroker.Open()
 	}
-	defer func(pipeline Pipeline) {
-		pipeline.Close()
-	}(pipeline)
-	go func(pipeline Pipeline) {
-		pipeline.Write(message)
-	}(pipeline)
-	msg, err := pipeline.Read(time.Second)
+	defer func(messageBroker SimpleMessageBroker) {
+		messageBroker.Close()
+	}(messageBroker)
+	go func(messageBroker SimpleMessageBroker) {
+		messageBroker.Write(message)
+	}(messageBroker)
+	msg, err := messageBroker.Read(time.Second)
 	if err != nil {
 		t.Fatal(fmt.Sprintf("Failed to Read from the Pipeline : err %s", err.Error()))
 	} else if msg != message {

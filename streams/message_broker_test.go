@@ -7,11 +7,11 @@ import (
 	"time"
 )
 
-func TestNewQueueWithTimeOut(t *testing.T) {
-	var message common.Message = "Test Queue"
+func TestNewNoTransitionMessageBrokerWithTimeOut(t *testing.T) {
+	var message common.Message = "Test NewMessageBroker"
 	var outcome common.Message = ""
 	var err error = nil
-	queue := NewQueue(time.Second)
+	queue := NewNoTransitionMessageBroker(time.Second)
 	go func() {
 		time.Sleep(350 * time.Millisecond)
 		queue.Write(message)
@@ -24,11 +24,11 @@ func TestNewQueueWithTimeOut(t *testing.T) {
 	}
 }
 
-func TestNewQueueWithoutTimeOut(t *testing.T) {
-	var message common.Message = "Test Queue"
+func TestNewNoTransitionMessageBrokerWithoutTimeOut(t *testing.T) {
+	var message common.Message = "Test NewMessageBroker"
 	var outcome common.Message = ""
 	var err error = nil
-	queue := NewQueue(0 * time.Second)
+	queue := NewNoTransitionMessageBroker(0 * time.Second)
 	go func() {
 		time.Sleep(350 * time.Millisecond)
 		queue.Write(message)
@@ -41,23 +41,23 @@ func TestNewQueueWithoutTimeOut(t *testing.T) {
 	}
 }
 
-func TestMessageQueueEchoBrisge(t *testing.T) {
-	var message common.Message = "Test Queue"
+func TestNewMessageBrokerEchoBridge(t *testing.T) {
+	var message common.Message = "Test NewMessageBroker"
 	var outcome common.Message = ""
 	var readTimeout time.Duration = 1 * time.Second
 	var echoReadTimeout time.Duration = 1 * time.Second
-	messageQueue := NewMessageQueue(readTimeout)
+	messageBroker := NewMessageBroker(readTimeout)
 
 	var echoBridgeChan chan common.Message = make(chan common.Message)
 	var echoMessageBridge MessageBridge = NewEchoMessageBridge(&echoBridgeChan, readTimeout, echoReadTimeout)
 
 	defer func() {
-		messageQueue.Stop()
+		messageBroker.Stop()
 		echoMessageBridge.Close()
 	}()
 
-	messageQueue.AddMessageBridge(&echoMessageBridge)
-	messageQueue.Start()
+	messageBroker.AddMessageBridge(&echoMessageBridge)
+	messageBroker.Start()
 	echoMessageBridge.Open()
 	echoBridgeChan <- message
 	select {

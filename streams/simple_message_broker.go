@@ -12,8 +12,8 @@ type pipelineStruct struct {
 	_initialized bool
 }
 
-// Interface describes Pipeline features
-type Pipeline interface {
+// Interface describes Simple Message Broker features
+type SimpleMessageBroker interface {
 	// Gets output channel.
 	//
 	// Returns:
@@ -49,7 +49,7 @@ type Pipeline interface {
 	// Get pipeline status.
 	//
 	// Returns:
-	//   bool Pipeline opening state
+	//   bool Simple Message Broker opening state
 	IsOpen() bool
 }
 
@@ -59,7 +59,7 @@ func (this *pipelineStruct) GetOutChannel() *chan common.Type {
 
 func (this *pipelineStruct) Read(timeout time.Duration) (common.Type, error) {
 	if !this._initialized {
-		return nil, errors.New("Pipeline not opened")
+		return nil, errors.New("Simple Message Broker not opened")
 	}
 	if timeout > 0 {
 		select {
@@ -78,7 +78,7 @@ func (this *pipelineStruct) Read(timeout time.Duration) (common.Type, error) {
 
 func (this *pipelineStruct) Write(item common.Type) error {
 	if !this._initialized {
-		return errors.New("Pipeline not opened")
+		return errors.New("Simple Message Broker not opened")
 	}
 	this._out <- item
 	return nil
@@ -86,7 +86,7 @@ func (this *pipelineStruct) Write(item common.Type) error {
 
 func (this *pipelineStruct) Open() error {
 	if this._initialized {
-		return errors.New("Pipeline already opened")
+		return errors.New("Simple Message Broker already opened")
 	}
 	this._out = make(chan common.Type)
 	this._initialized = true
@@ -95,7 +95,7 @@ func (this *pipelineStruct) Open() error {
 
 func (this *pipelineStruct) Close() error {
 	if !this._initialized {
-		return errors.New("Pipeline not opened")
+		return errors.New("Simple Message Broker not opened")
 	}
 	close(this._out)
 	this._initialized = false
@@ -109,8 +109,8 @@ func (this *pipelineStruct) IsOpen() bool {
 // Creates new pipeline.
 //
 // Returns:
-//   streams.Pipeline Any suitable error risen during code execution
-func NewPipeline() Pipeline {
+//   streams.SimpleMessageBroker Any suitable error risen during code execution
+func NewSimpleMessageBroker() SimpleMessageBroker {
 	return &pipelineStruct{
 		_initialized: false,
 	}

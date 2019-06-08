@@ -50,8 +50,8 @@ type MessageBridge interface {
 	GetBridgeType() BridgeType
 }
 
-// Interface describes Queue features
-type Queue interface {
+// Interface describes MessageBroker features
+type NoTransitionMessageBroker interface {
 	//Initialize the message queue flow
 	init()
 	// Writes Message into the message queue.
@@ -69,14 +69,14 @@ type Queue interface {
 	Read() (common.Type, error)
 }
 
-type queueStruct struct {
+type noTransMessageBroker struct {
 	sync.RWMutex
 	inOutChan   chan common.Type
 	initialized bool
 	TimeOut     time.Duration
 }
 
-func (q *queueStruct) init() {
+func (q *noTransMessageBroker) init() {
 	if q.initialized {
 		return
 	}
@@ -85,14 +85,14 @@ func (q *queueStruct) init() {
 	q.initialized = true
 }
 
-func (q *queueStruct) Write(m common.Type) error {
+func (q *noTransMessageBroker) Write(m common.Type) error {
 	q.Lock()
 	q.inOutChan <- m
 	q.Unlock()
 	return nil
 }
 
-func (q *queueStruct) Read() (common.Type, error) {
+func (q *noTransMessageBroker) Read() (common.Type, error) {
 	var val common.Type
 	if q.TimeOut == 0 {
 		select {
@@ -104,23 +104,23 @@ func (q *queueStruct) Read() (common.Type, error) {
 		case msg := <-q.inOutChan:
 			val = msg
 		case <-time.After(q.TimeOut):
-			return nil, errors.New("MessageQueue::Read::err Timeout reached")
+			return nil, errors.New("MessageBroker::Read::err Timeout reached")
 		}
 	}
 	return val, nil
 }
 
-//Creates a New Queue
+//Creates a New MessageBroker
 //
 // Parameters:
 //   messageReadTimeout (time.Duration) Timeout before reset the listening (infinite if <= 0)
 // Returns:
-//   Queue New brand queue
-func NewQueue(messageReadTimeout time.Duration) Queue {
-	var q queueStruct = queueStruct{
+//   MessageBroker New brand queue
+func NewNoTransitionMessageBroker(messageReadTimeout time.Duration) NoTransitionMessageBroker {
+	var q noTransMessageBroker = noTransMessageBroker{
 		TimeOut: messageReadTimeout,
 	}
-	runtime.SetFinalizer(&q, func(qs *queueStruct) {
+	runtime.SetFinalizer(&q, func(qs *noTransMessageBroker) {
 		defer func() {
 			err := recover()
 			if logger != nil {
@@ -134,8 +134,8 @@ func NewQueue(messageReadTimeout time.Duration) Queue {
 
 }
 
-// Interface describes Message Queue features
-type MessageQueue interface {
+// Interface describes Message MessageBroker features
+type MessageBroker interface {
 	//Initialize the message queue flow
 	init()
 	// Add a Message Bridge into the message queue. The queue will broadcast messages
@@ -168,7 +168,7 @@ type MessageQueue interface {
 	IsRunning() bool
 }
 
-type messageQueueStruct struct {
+type messageBrokerStruct struct {
 	sync.RWMutex
 	internalBridgeChannel chan common.Message
 	bridges               []*MessageBridge
@@ -178,7 +178,7 @@ type messageQueueStruct struct {
 	internalTimeOut       time.Duration
 }
 
-func (q *messageQueueStruct) init() {
+func (q *messageBrokerStruct) init() {
 	if q.initialized {
 		return
 	}
@@ -190,19 +190,19 @@ func (q *messageQueueStruct) init() {
 	q.initialized = true
 }
 
-func (q *messageQueueStruct) AddMessageBridge(bridge *MessageBridge) error {
+func (q *messageBrokerStruct) AddMessageBridge(bridge *MessageBridge) error {
 	if bridge == nil {
-		return errors.New("MessageQueue::AddMessageBridge::err Invalid nil pointer")
+		return errors.New("MessageBroker::AddMessageBridge::err Invalid nil pointer")
 	}
 	q.bridges = append(q.bridges, bridge)
 	return nil
 }
 
-func (q *messageQueueStruct) ListMessageBridges() []*MessageBridge {
+func (q *messageBrokerStruct) ListMessageBridges() []*MessageBridge {
 	return q.bridges
 }
 
-func (q *messageQueueStruct) Start() error {
+func (q *messageBrokerStruct) Start() error {
 	q.started = true
 	go func() {
 		defer func() {
@@ -212,7 +212,7 @@ func (q *messageQueueStruct) Start() error {
 		for q.started {
 			select {
 			case msg := <-q.internalBridgeChannel:
-				go func(q *messageQueueStruct, incomingMsg common.Message) {
+				go func(q *messageBrokerStruct, incomingMsg common.Message) {
 					defer func() {
 						recover()
 					}()
@@ -226,7 +226,7 @@ func (q *messageQueueStruct) Start() error {
 				}(q, msg)
 			case <-time.After(q.internalTimeOut):
 				if logger != nil {
-					logger.Debug(fmt.Sprintf("MessageQueue::TransmitOutbound::warn Internal timeout of %8.4f s reached!!", (float64(q.internalTimeOut) / float64(time.Second))))
+					logger.Debug(fmt.Sprintf("MessageBroker::TransmitOutbound::warn Internal timeout of %8.4f s reached!!", (float64(q.internalTimeOut) / float64(time.Second))))
 				}
 			}
 		}
@@ -240,13 +240,13 @@ func (q *messageQueueStruct) Start() error {
 			for _, bridge := range q.bridges {
 				if bridge != nil {
 					if (*bridge).GetBridgeType() == ReadOnly || (*bridge).GetBridgeType() == ReadWrite {
-						go func(q *messageQueueStruct, bridge *MessageBridge) {
+						go func(q *messageBrokerStruct, bridge *MessageBridge) {
 							select {
 							case msg := <-*((*bridge).GetInOutChannel()):
 								q.internalBridgeChannel <- msg
 							case <-time.After(q.TimeOut):
 								if logger != nil {
-									logger.Debug(fmt.Sprintf("MessageQueue::ReceiveInbound::warn Timeout for bridge: %s of  %8.4f s reached!!", (*bridge).Name(), (float64(q.TimeOut) / float64(time.Second))))
+									logger.Debug(fmt.Sprintf("MessageBroker::ReceiveInbound::warn Timeout for bridge: %s of  %8.4f s reached!!", (*bridge).Name(), (float64(q.TimeOut) / float64(time.Second))))
 								}
 							}
 						}(q, bridge)
@@ -258,27 +258,27 @@ func (q *messageQueueStruct) Start() error {
 	return nil
 }
 
-func (q *messageQueueStruct) Stop() error {
+func (q *messageBrokerStruct) Stop() error {
 	q.started = false
 	time.Sleep(time.Second)
 	return nil
 }
 
-func (q *messageQueueStruct) IsRunning() bool {
+func (q *messageBrokerStruct) IsRunning() bool {
 	return q.started
 }
 
-//Creates a New Message Queue
+//Creates a New Message MessageBroker
 //
 // Parameters:
 //   messageReadTimeout (time.Duration) Timeout before reset the listening on each of Bridges (infinite if <= 0)
 // Returns:
-//   Message Queue New brand element
-func NewMessageQueue(messageReadTimeout time.Duration) MessageQueue {
-	var q messageQueueStruct = messageQueueStruct{
+//   Message MessageBroker New brand element
+func NewMessageBroker(messageReadTimeout time.Duration) MessageBroker {
+	var q messageBrokerStruct = messageBrokerStruct{
 		TimeOut: messageReadTimeout,
 	}
-	runtime.SetFinalizer(&q, func(qs *messageQueueStruct) {
+	runtime.SetFinalizer(&q, func(qs *messageBrokerStruct) {
 		defer func() {
 			err := recover()
 			if logger != nil {
@@ -362,12 +362,12 @@ func (b *echoBridgeStruct) GetBridgeType() BridgeType {
 	return ReadWrite
 }
 
-//Creates a New Message Queue
+//Creates a New Message MessageBroker
 //
 // Parameters:
 //   messageReadTimeout (time.Duration) Timeout before reset the listening on each of Bridges (infinite if <= 0)
 // Returns:
-//   Message Queue New brand element
+//   Message MessageBroker New brand element
 func NewEchoMessageBridge(echoBridgeChan *chan common.Message, messageReadTimeout time.Duration, echoMessageReadTimeout time.Duration) MessageBridge {
 	var bridge echoBridgeStruct = echoBridgeStruct{}
 	runtime.SetFinalizer(&bridge, func(qs *echoBridgeStruct) {

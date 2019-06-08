@@ -128,6 +128,8 @@ const (
 	EncryptedFormat StreamInOutFormat = 15
 	//Text encrypted input/output format
 	BinaryFormat StreamInOutFormat = 16
+	//Text Go Format input/output format
+	GoStructFormat StreamInOutFormat = 17
 )
 
 // Transform text in Stream Input/Output format.
