@@ -1,6 +1,8 @@
 package errors
 
-import ()
+import (
+	"reflect"
+)
 
 type error interface {
 	Error() string
@@ -16,4 +18,14 @@ func (e *baseErrorStruct) Error() string {
 
 func New(text string) error {
 	return &baseErrorStruct{text}
+}
+
+func IsError(obj interface{}) bool {
+	if obj == nil {
+		return false
+	}
+	st := reflect.TypeOf(obj)
+	_, ok := st.MethodByName("Error")
+	return ok
+
 }

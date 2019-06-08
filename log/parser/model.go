@@ -4,10 +4,15 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hellgate75/general_utils/common"
+	errs "github.com/hellgate75/general_utils/errors"
+	"runtime"
 	"time"
 )
 
 type LogStreamType int
+
+var testFlag bool = false
+var testChan chan interface{}
 
 const (
 	StdOutStreamType LogStreamType = 101
@@ -45,6 +50,7 @@ type RotatePolicy struct {
 type _logStdOutStruct struct {
 	_logFormat common.StreamInOutFormat
 	converter  ConverterFunc
+	open       bool
 }
 
 type _logFileStreamStruct struct {
@@ -52,25 +58,36 @@ type _logFileStreamStruct struct {
 	format    common.StreamInOutFormat
 	policy    RotatePolicy
 	converter ConverterFunc
+	open      bool
 }
 
 type _logUrlStreamStruct struct {
 	url       string
 	format    common.StreamInOutFormat
 	converter ConverterFunc
+	open      bool
 }
 
 func (l *_logStdOutStruct) Open() error {
-	var err error = nil
+	var err error
 	defer func() {
 		r := recover()
-		err = r.(error)
+		if errs.IsError(r) {
+			err = r.(error)
+		} else {
+			err = errors.New("Unknown Error Occured")
+		}
 	}()
 	l.converter = getConverterByStreamInOutFormat(l._logFormat)
+	l.open = (err == nil)
 	return err
 }
 
 func (l *_logStdOutStruct) Close() error {
+	if !l.open {
+		return nil
+	}
+	l.open = false
 	return nil
 }
 
@@ -82,17 +99,27 @@ func (l *_logStdOutStruct) Write(data interface{}) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(body))
+	if testFlag && testChan != nil {
+		testChan <- string(body)
+	} else {
+		fmt.Println(string(body))
+
+	}
 	return nil
 }
 
 func New(logType LogStreamType, format common.StreamInOutFormat) (LogStream, error) {
+	//TODO: Complete File and Url Stream Implementations and place into this method
 
 	switch logType {
 	case StdOutStreamType:
-		return &_logStdOutStruct{
+		var los _logStdOutStruct = _logStdOutStruct{
 			_logFormat: format,
-		}, nil
+		}
+		runtime.SetFinalizer(&los, func(los *_logStdOutStruct) {
+			los.Close()
+		})
+		return &los, nil
 	default:
 		return nil, errors.New("log::parser::error : Unknown or Not Implemented Log Stream Type")
 	}
