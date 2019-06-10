@@ -35,6 +35,7 @@ const (
 const defaultDateFormat string = "2006-01-02 15:04:05.000"
 
 const DEFAULT_VERBOSITY LogLevel = INFO
+const DEFAULT_VERBOSITY_TEXT string = "INFO "
 
 // Transform text to representing Log Verbosity Level element.
 //
@@ -63,7 +64,7 @@ func StringToLogLevel(text string) (LogLevel, error) {
 	case "NOLOG":
 		return NOLOG, nil
 	}
-	return INFO, nil
+	return DEFAULT_VERBOSITY, nil
 }
 
 var LogChanEnabled bool = false
@@ -96,7 +97,7 @@ func LogLevelToString(level LogLevel) (string, error) {
 	case NOLOG:
 		return "NOLOG", nil
 	}
-	return "INFO", nil
+	return DEFAULT_VERBOSITY_TEXT, nil
 }
 
 type LogMapItem struct {
