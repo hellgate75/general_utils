@@ -201,7 +201,7 @@ type Logger interface {
 	Debug(value interface{})
 }
 
-func (l *_loggerEngineStruct) _writeLog(level LogLevel, value interface{}, err error, name string) {
+func (l *_loggerEngineStruct) _writeLog(level LogLevel, value interface{}, errObject error, name string) {
 
 	writeLogToStream := func(stream *parser.LogStream, level LogLevel, name string, logText interface{}) {
 		if !LogChanEnabled {
@@ -314,19 +314,19 @@ func (l *_loggerEngineStruct) _writeLog(level LogLevel, value interface{}, err e
 				}
 
 				if value == nil {
-					go writeLogToStream(dist.Stream, level, name, colouring(fmt.Sprintf("[%s] %s - %s - %s", LogDate.Format(dateFormat), logLevel, name, err.Error())))
-				} else if err == nil {
+					go writeLogToStream(dist.Stream, level, name, colouring(fmt.Sprintf("[%s] %s - %s - %s", LogDate.Format(dateFormat), logLevel, name, errObject.Error())))
+				} else if errObject == nil {
 					go writeLogToStream(dist.Stream, level, name, colouring(fmt.Sprintf("[%s] %s - %s - %v", LogDate.Format(dateFormat), logLevel, name, value)))
 				} else {
-					go writeLogToStream(dist.Stream, level, name, colouring(fmt.Sprintf("[%s] %s - %s - %v - error : %s", LogDate.Format(dateFormat), name, logLevel, value, err.Error())))
+					go writeLogToStream(dist.Stream, level, name, colouring(fmt.Sprintf("[%s] %s - %s - %v - error : %s", LogDate.Format(dateFormat), name, logLevel, value, errObject.Error())))
 				}
 			} else {
 				if value == nil {
-					go writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %s", LogDate.Format(dateFormat), logLevel, name, err.Error()))
-				} else if err == nil {
+					go writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %s", LogDate.Format(dateFormat), logLevel, name, errObject.Error()))
+				} else if errObject == nil {
 					go writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %v", LogDate.Format(dateFormat), logLevel, name, value))
 				} else {
-					go writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %v - error : %s", LogDate.Format(dateFormat), name, logLevel, value, err.Error()))
+					go writeLogToStream(dist.Stream, level, name, fmt.Sprintf("[%s] %s - %s - %v - error : %s", LogDate.Format(dateFormat), name, logLevel, value, errObject.Error()))
 				}
 			}
 		}
@@ -460,12 +460,14 @@ func (l *_loggerEngineStruct) _runConfigSetup() {
 						if pkgErr != nil {
 							pkgVerbosity = l.globalVerbosity
 						}
+						fmt.Println(gray("[Logger Engine]::out Found package verbosity: "), lightRed(fmt.Sprintf("%v", pkgVerbosity)))
 						warnings = computePackageData(l, writer, appender, pkgName, pkgVerbosity, warnings)
 					}
 
 				} else {
 					pkgName := "*"
 					pkgVerbosity := l.globalVerbosity
+					fmt.Println(gray("[Logger Engine]::out Wildcard package verbosity: "), lightRed(fmt.Sprintf("%v", pkgVerbosity)))
 					warnings = computePackageData(l, writer, appender, pkgName, pkgVerbosity, warnings)
 				}
 
@@ -588,6 +590,7 @@ func getEngine(verbosity LogLevel) _loggerEngine {
 }
 
 func getEngineFromConfig(config LogConfig) (_loggerEngine, error) {
+	//	fmt.Println(fmt.Sprintf("Verbosity: %s", config.Verbosity))
 	verbosity, err := StringToLogLevel(config.Verbosity)
 	if err != nil {
 		return nil, err
@@ -646,6 +649,7 @@ func InitStaticLoggerEngine(verbosity LogLevel) {
 					Filters:      []LogFilter{},
 				},
 			},
+			Verbosity: verb,
 		})
 	} else {
 		fmt.Println("[Logger Engine]::InitStaticLoggerEngine ::warn :: Logger already initialized!!")
