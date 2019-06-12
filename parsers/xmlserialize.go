@@ -73,3 +73,7 @@ func (this *xmlParserStruct) SerializeToBytes(mask common.Type) ([]byte, error) 
 		return nil, err
 	}
 }
+
+func (this *xmlParserStruct) GetEncoding() Encoding {
+	return XML
+}

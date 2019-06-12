@@ -73,3 +73,7 @@ func (this *yamlParserStruct) SerializeToBytes(mask common.Type) ([]byte, error)
 		return nil, err
 	}
 }
+
+func (this *yamlParserStruct) GetEncoding() Encoding {
+	return YAML
+}

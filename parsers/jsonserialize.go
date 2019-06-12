@@ -76,3 +76,7 @@ func (this *jsonParserStruct) SerializeToBytes(mask common.Type) ([]byte, error)
 		return nil, err
 	}
 }
+
+func (this *jsonParserStruct) GetEncoding() Encoding {
+	return JSON
+}
