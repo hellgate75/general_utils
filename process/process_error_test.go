@@ -1,15 +1,14 @@
-package errors
+package process
 
 import (
 	"fmt"
-	utils "github.com/hellgate75/general_utils/utils"
 	"testing"
 )
 
 func TestProcessException(T *testing.T) {
 	text := "test exception"
-	var pid utils.PID = 1234
-	var state utils.ProcessState = utils.ERROR
+	var pid PID = 1234
+	var state ProcessState = ERROR
 
 	exc := NewProcess(text, pid, state)
 	if exc.Error() != text {
