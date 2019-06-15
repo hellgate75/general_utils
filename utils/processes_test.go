@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"testing"
@@ -9,17 +10,19 @@ import (
 
 func TestNewProcessManager(t *testing.T) {
 	var a int = 0
-	var pm ProcessManager = NewProcessManager(func(pm ProcessManager, inChan *ProcessChannel, outChan *ProcessChannel) {
+	var pm ProcessManager = NewProcessManager(func(pm ProcessManager, inChan *ProcessChannel, outChan *ProcessChannel) error {
 		for i := 0; i < 10; i++ {
 			a++
 		}
+		return nil
 	})
 	if pm.Status() != DEFAULT {
 		t.Fatal("ProcessManager::error : Unable to Intantiate and Init")
 	}
 	pm.Start()
-	time.Sleep(2 * time.Second)
-	fmt.Println(pm.Status())
+	for pm.Running() {
+		time.Sleep(300 * time.Millisecond)
+	}
 	if pm.Status() != DONE {
 		t.Fatal("ProcessManager::error : Unable to Complete tasks")
 	}
@@ -32,18 +35,18 @@ func TestNewProcessManager(t *testing.T) {
 func TestProcessManagerChannels(t *testing.T) {
 	var a int = 0
 	var expectedValue int = 0
-	var pm ProcessManager = NewProcessManager(func(pm ProcessManager, inChan *ProcessChannel, outChan *ProcessChannel) {
+	var pm ProcessManager = NewProcessManager(func(pm ProcessManager, inChan *ProcessChannel, outChan *ProcessChannel) error {
 		for i := 0; i < 10; i++ {
 			a++
 			*outChan <- fmt.Sprintf("%v", a)
 			expectedValue += a
 		}
+		return errors.New("Test Error!!")
 	})
 	if pm.Status() != DEFAULT {
 		t.Fatal("ProcessManager::error : Unable to Intantiate and Init")
 	}
 	pm.Start()
-	time.Sleep(1 * time.Second)
 	var value int = 0
 	outChan := pm.GetOutChannel()
 	for pm.Running() {
@@ -54,9 +57,7 @@ func TestProcessManagerChannels(t *testing.T) {
 		}
 
 	}
-	//	fmt.Println(fmt.Sprintf("Process Output : %v", pm.Status()))
-	//	fmt.Println(fmt.Sprintf("DONE : %v", DONE))
-	if pm.Status() != DONE {
+	if pm.Status() != ERROR {
 		t.Fatal("ProcessManager::error : Unable to Complete tasks")
 	}
 	if value != expectedValue {
