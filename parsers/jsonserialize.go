@@ -2,6 +2,7 @@ package parsers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/hellgate75/general_utils/common"
 	"github.com/hellgate75/general_utils/streams"
@@ -9,11 +10,27 @@ import (
 	"strconv"
 )
 
-func (this *jsonParserStruct) DeserializeFromFile(filePath string, mask common.Type) error {
+func (this *jsonParserStruct) DeserializeFromFile(filePath string, out interface{}) error {
 	var bytes []byte
 	var err error
 	if bytes, err = streams.LoadFileBytes(filePath); err == nil {
-		return this.DeserializeFromBytes(bytes, mask)
+		if err = json.Unmarshal(bytes, out); err == nil {
+			var length interface{} = "<null>"
+			if bytes != nil && len(bytes) > 0 {
+				length = strconv.Itoa(len(bytes))
+			} else {
+				return errors.New("Jason Parser :: Input null or empty set of bytes!!!")
+			}
+			if logger != nil {
+				logger.Debug(fmt.Sprintf("Json Parser :: Successful Deserialized bytes : %v", length))
+			}
+			return nil
+		} else {
+			if logger != nil {
+				logger.Error(err)
+			}
+			return err
+		}
 	} else {
 		if logger != nil {
 			logger.Error(err)
@@ -22,12 +39,14 @@ func (this *jsonParserStruct) DeserializeFromFile(filePath string, mask common.T
 	}
 }
 
-func (this *jsonParserStruct) DeserializeFromBytes(bytes []byte, mask common.Type) error {
+func (this *jsonParserStruct) DeserializeFromBytes(bytes []byte, out interface{}) error {
 	var err error
-	if err = json.Unmarshal(bytes, &mask); err == nil {
+	if err = json.Unmarshal(bytes, out); err == nil {
 		var length interface{} = "<null>"
-		if bytes != nil {
+		if bytes != nil && len(bytes) > 0 {
 			length = strconv.Itoa(len(bytes))
+		} else {
+			return errors.New("Jason Parser :: Input null or empty set of bytes!!!")
 		}
 		if logger != nil {
 			logger.Debug(fmt.Sprintf("Json Parser :: Successful Deserialized bytes : %v", length))

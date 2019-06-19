@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hellgate75/general_utils/common"
+	"github.com/hellgate75/general_utils/generics"
 	"github.com/hellgate75/general_utils/log"
+	"reflect"
 	"strings"
 )
 
@@ -84,27 +86,30 @@ type base64ParserStruct struct {
 type binaryParserStruct struct {
 }
 
+var structureCleaner generics.StructureCleaner = generics.NewStructureCleaner()
+
 // Define Generic Parser Features
 type Parser interface {
 	// Provides Deserialization from a File.
 	//
 	// Parameters:
 	//   filePath (string) File full path
-	//   mask (common.Type) Generic Element to be deserialized
+	//   out (interface{}) Pointer to Element to parse
 	//
 	// Returns:
+	// out (interface{}) Element to parse
 	// error Any suitable error risen during code execution
-	DeserializeFromFile(filePath string, mask common.Type) error
+	DeserializeFromFile(filePath string, out interface{}) error
 
 	// Provides Deserialization from a byte array.
 	//
 	// Parameters:
 	//   bytes ([]byte) Bytes to be parsed
-	//   mask (common.Type) Generic Element to be deserialized
+	//   out (interface{}) Pointer to Element to parse
 	//
 	// Returns:
 	// error Any suitable error risen during code execution
-	DeserializeFromBytes(bytes []byte, mask common.Type) error
+	DeserializeFromBytes(bytes []byte, out interface{}) error
 
 	// Provides Serialization to a File.
 	//
@@ -171,6 +176,39 @@ type LocalWriter interface {
 
 type _localWriterStruct struct {
 	_buff *bytes.Buffer
+}
+
+// Assign vale to interface
+// dst is a pointer to a value
+// newVal is a pointer to a value
+func _assign(dst interface{}, newVal interface{}) {
+	fmt.Println(fmt.Sprintf("newVal: %v", reflect.Indirect(reflect.ValueOf(newVal)).Interface()))
+	// ValueOf to enter reflect-land
+	newValPtrValue := reflect.ValueOf(newVal)
+	// the *dst in *dst = zero
+	dstNewValue := reflect.Indirect(newValPtrValue)
+	// ValueOf to enter reflect-land
+	dstPtrValue := reflect.ValueOf(dst)
+	// the *dst in *dst = newVal
+	dstValue := reflect.Indirect(dstPtrValue)
+	// the = in *dst = 0
+	dstValue.Set(dstNewValue)
+	fmt.Println(fmt.Sprintf("dst: %v", reflect.Indirect(reflect.ValueOf(dst)).Interface()))
+}
+
+func _clearElement(dst interface{}) {
+	// ValueOf to enter reflect-land
+	dstPtrValue := reflect.ValueOf(dst)
+	// need the type to create a value
+	dstPtrType := dstPtrValue.Type()
+	// *T -> T, crashes if not a ptr
+	dstType := dstPtrType.Elem()
+	// the *dst in *dst = zero
+	dstValue := reflect.Indirect(dstPtrValue)
+	// the zero in *dst = zero
+	zeroValue := reflect.Zero(dstType)
+	// the = in *dst = 0
+	dstValue.Set(zeroValue)
 }
 
 func NewLocalWriterCustom(buffer bytes.Buffer) LocalWriter {

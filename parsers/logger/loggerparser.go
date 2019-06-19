@@ -1,4 +1,4 @@
-package parsers
+package logger
 
 import (
 	"github.com/hellgate75/general_utils/log"
@@ -22,6 +22,7 @@ func LoadLoggerConfigFromFile(encoding parsers.Encoding, filePath string) (*log.
 		return nil, err
 	}
 	var conf log.LogConfig = log.LogConfig{}
+	//TODO: Complete Remapping structure
 	err = parser.DeserializeFromFile(filePath, conf)
 	return &conf, err
 }

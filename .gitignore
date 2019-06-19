@@ -15,6 +15,4 @@
 .settings
 _vendor*
 vendor
-test/resources/*.yml
-test/resources/*.xml
-test/resources/*.json
+test/*

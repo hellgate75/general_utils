@@ -3,6 +3,7 @@ package parsers
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"github.com/hellgate75/general_utils/common"
 	"github.com/hellgate75/general_utils/streams"
@@ -10,26 +11,46 @@ import (
 	"strconv"
 )
 
-func (this *binaryParserStruct) DeserializeFromFile(filePath string, mask common.Type) error {
-	var bytes []byte
+func (this *binaryParserStruct) DeserializeFromFile(filePath string, out interface{}) error {
+	var byteArray []byte
 	var err error
-	if bytes, err = streams.LoadFileBytes(filePath); err == nil {
-		return this.DeserializeFromBytes(bytes, mask)
+	if byteArray, err = streams.LoadFileBytes(filePath); err == nil {
+		buff := bytes.NewBuffer(byteArray)
+		if err := binary.Read(buff, binary.BigEndian, out); err == nil {
+			var length interface{} = "<null>"
+			byteArray = buff.Bytes()
+			if byteArray != nil && len(byteArray) > 0 {
+				length = strconv.Itoa(len(byteArray))
+			}
+			if logger != nil {
+				logger.Debug(fmt.Sprintf("Binary Parser :: Successful Deserialized bytes : %v", length))
+			} else {
+				return errors.New("Binary Parser :: Successful Deserialized null or empty set of bytes!!!")
+			}
+			return nil
+		} else {
+			if logger != nil {
+				logger.Error(err)
+			}
+			return err
+		}
 	} else {
-		return err
+		return nil
 	}
 }
 
-func (this *binaryParserStruct) DeserializeFromBytes(byteArray []byte, mask common.Type) error {
+func (this *binaryParserStruct) DeserializeFromBytes(byteArray []byte, out interface{}) error {
 	buff := bytes.NewBuffer(byteArray)
-	if err := binary.Read(buff, binary.BigEndian, mask); err == nil {
+	if err := binary.Read(buff, binary.BigEndian, out); err == nil {
 		var length interface{} = "<null>"
 		byteArray = buff.Bytes()
-		if byteArray != nil {
+		if byteArray != nil && len(byteArray) > 0 {
 			length = strconv.Itoa(len(byteArray))
+		} else {
+			return errors.New("Binary Parser :: Successful Deserialized null or empty set of bytes!!!")
 		}
 		if logger != nil {
-			logger.Debug(fmt.Sprintf("Base64 Parser :: Successful Deserialized bytes : %v", length))
+			logger.Debug(fmt.Sprintf("Binary Parser :: Successful Deserialized bytes : %v", length))
 		}
 		return nil
 	} else {
@@ -77,5 +98,5 @@ func (this *binaryParserStruct) SerializeToBytes(mask common.Type) ([]byte, erro
 }
 
 func (this *binaryParserStruct) GetEncoding() Encoding {
-	return BASE64
+	return BINARY
 }

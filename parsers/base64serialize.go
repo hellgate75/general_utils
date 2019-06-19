@@ -3,6 +3,8 @@ package parsers
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/gob"
+	"errors"
 	"fmt"
 	"github.com/hellgate75/general_utils/common"
 	"github.com/hellgate75/general_utils/streams"
@@ -10,33 +12,97 @@ import (
 	"strconv"
 )
 
-func (this *base64ParserStruct) DeserializeFromFile(filePath string, mask common.Type) error {
-	var bytes []byte
+func (this *base64ParserStruct) DeserializeFromFile(filePath string, out interface{}) error {
+	var byteArray []byte
 	var err error
-	if bytes, err = streams.LoadFileBytes(filePath); err == nil {
-		return this.DeserializeFromBytes(bytes, mask)
+	var length interface{} = "<null>"
+	if byteArray, err = streams.LoadFileBytes(filePath); err == nil {
+		if byteArray != nil && len(byteArray) > 0 {
+			length = strconv.Itoa(len(byteArray))
+		} else {
+			return errors.New("Base64 Parser :: Input null or empty set of bytes!!!")
+		}
+		inStr := bytes.NewBuffer(byteArray).String()
+		outStr, err := base64.StdEncoding.DecodeString(inStr)
+		if err != nil {
+			if logger != nil {
+				logger.Debug(fmt.Sprintf("Base64 Parser :: Successful Deserialized bytes : %v", length))
+			}
+			return err
+		}
+		var dstArray []byte = []byte(outStr)
+		if err == nil {
+			if len(dstArray) > 0 {
+				//de-serialize object
+				buff := bytes.NewBuffer(dstArray)
+				enc := gob.NewDecoder(buff)
+				if err = enc.Decode(out); err == nil {
+					if logger != nil {
+						logger.Debug(fmt.Sprintf("Base64 Parser :: GoLang Parser :: Successful Deserialized bytes : %v", length))
+					}
+				} else {
+					if logger != nil {
+						logger.Error(err)
+					}
+					return err
+				}
+				if logger != nil {
+					logger.Debug(fmt.Sprintf("Base64 Parser :: Successful Deserialized bytes : %v", length))
+				}
+			} else {
+				err = errors.New("Base64 Parser :: Empty decoded array!!!")
+				if logger != nil {
+					logger.Error(err)
+				}
+			}
+			return err
+		} else {
+			if logger != nil {
+				logger.Error(err)
+			}
+			return err
+		}
 	} else {
 		return err
 	}
 }
 
-func (this *base64ParserStruct) DeserializeFromBytes(byteArray []byte, mask common.Type) error {
-	buff := bytes.NewBuffer(byteArray)
-	enc := base64.NewDecoder(base64.StdEncoding, buff)
-	if no, err := enc.Read(byteArray); err == nil && no > 0 {
-		var length interface{} = "<null>"
-		byteArray = buff.Bytes()
-		if byteArray != nil {
-			length = strconv.Itoa(len(byteArray))
-			if len(byteArray) > 0 {
-				this.DeserializeFromBytes(byteArray, mask)
-			}
-		}
+func (this *base64ParserStruct) DeserializeFromBytes(byteArray []byte, out interface{}) error {
+	var length interface{} = "<null>"
+	if byteArray != nil && len(byteArray) > 0 {
+		length = strconv.Itoa(len(byteArray))
+	} else {
+		return errors.New("Base64 Parser :: Input null or empty set of bytes!!!")
+	}
+	inStr := bytes.NewBuffer(byteArray).String()
+	outStr, err := base64.StdEncoding.DecodeString(inStr)
+	if err != nil {
 		if logger != nil {
 			logger.Debug(fmt.Sprintf("Base64 Parser :: Successful Deserialized bytes : %v", length))
 		}
-		return nil
+		return err
+	}
+	var dstArray []byte = []byte(outStr)
+	if len(dstArray) > 0 {
+		//de-serialize object
+		buff := bytes.NewBuffer(dstArray)
+		enc := gob.NewDecoder(buff)
+		if err = enc.Decode(out); err == nil {
+			if logger != nil {
+				logger.Debug(fmt.Sprintf("Base64 Parser :: GoLang Parser :: Successful Deserialized bytes : %v", length))
+			}
+		} else {
+			if logger != nil {
+				logger.Error(err)
+			}
+			return err
+		}
+		if err != nil && logger != nil {
+			logger.Debug(fmt.Sprintf("Base64 Parser :: Successful Deserialized bytes : %v", length))
+		}
+		return err
 	} else {
+		err = errors.New("Base64 Parser :: Empty decoded array!!!")
 		if logger != nil {
 			logger.Error(err)
 		}
@@ -68,27 +134,26 @@ func (this *base64ParserStruct) SerializeToFile(filePath string, mask common.Typ
 }
 
 func (this *base64ParserStruct) SerializeToBytes(mask common.Type) ([]byte, error) {
-	byteArray, err := this.internalParser.SerializeToBytes(mask)
-	if err != nil {
-		if logger != nil {
-			logger.Error(err)
+	var writer LocalWriter = NewLocalWriter()
+	var byteArray []byte
+	var err error
+	dec := gob.NewEncoder(writer)
+	if err = dec.Encode(mask); err == nil {
+		byteArray, err = writer.GetBytes()
+		if err != nil {
+			if logger != nil {
+				logger.Error(err)
+			}
+			return nil, err
 		}
-		return nil, err
-	}
-	buf := bytes.NewBuffer(byteArray)
-	dec := base64.NewEncoder(base64.StdEncoding, buf)
-	defer func() {
-		dec.Close()
-	}()
-	if _, err := dec.Write(byteArray); err == nil {
-		byteArray = buf.Bytes()
-		return byteArray, nil
 	} else {
 		if logger != nil {
 			logger.Error(err)
 		}
 		return nil, err
 	}
+	outStr := base64.StdEncoding.EncodeToString(byteArray)
+	return []byte(outStr), nil
 }
 
 func (this *base64ParserStruct) GetEncoding() Encoding {

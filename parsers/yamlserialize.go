@@ -1,6 +1,7 @@
 package parsers
 
 import (
+	"errors"
 	"fmt"
 	"github.com/hellgate75/general_utils/common"
 	"github.com/hellgate75/general_utils/streams"
@@ -9,26 +10,48 @@ import (
 	"strconv"
 )
 
-func (this *yamlParserStruct) DeserializeFromFile(filePath string, mask common.Type) error {
+func (this *yamlParserStruct) DeserializeFromFile(filePath string, out interface{}) error {
 	var bytes []byte
 	var err error
+
 	if bytes, err = streams.LoadFileBytes(filePath); err == nil {
-		return this.DeserializeFromBytes(bytes, mask)
+		var length interface{} = "<null>"
+		if bytes != nil && len(bytes) > 0 {
+			length = strconv.Itoa(len(bytes))
+		} else {
+			return errors.New("Yaml Parser :: Input null or empty set of bytes!!!")
+		}
+		if err = yaml.Unmarshal(bytes, out); err == nil {
+			if logger != nil {
+				logger.Debug(fmt.Sprintf("Yaml Parser :: Successful Deserialized file %s length: %s", filePath, length))
+			}
+			return nil
+		} else {
+			if logger != nil {
+				logger.Error(err)
+			}
+			return err
+		}
 	} else {
 		return err
 	}
 }
 
-func (this *yamlParserStruct) DeserializeFromBytes(bytes []byte, mask common.Type) error {
+func (this *yamlParserStruct) DeserializeFromBytes(bytes []byte, out interface{}) error {
 	var err error
-	if err = yaml.Unmarshal(bytes, &mask); err == nil {
-		var length interface{} = "<null>"
-		if bytes != nil {
-			length = strconv.Itoa(len(bytes))
-		}
+	var length interface{} = "<null>"
+	if bytes != nil && len(bytes) > 0 {
+		length = strconv.Itoa(len(bytes))
+	} else {
+		return errors.New("Yaml Parser :: Input null or empty set of bytes!!!")
+	}
+	//	var inInterface interface{}
+	if err = yaml.Unmarshal(bytes, out); err == nil {
 		if logger != nil {
 			logger.Debug(fmt.Sprintf("Yaml Parser :: Successful Deserialized bytes : %v", length))
 		}
+		//outIface := structureCleaner.MapToInterface(inInterface.(map[interface{}]interface{}))
+		//_assign(&out, &outIface)
 		return nil
 	} else {
 		if logger != nil {

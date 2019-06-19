@@ -3,6 +3,7 @@ package parsers
 import (
 	"bytes"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"github.com/hellgate75/general_utils/common"
 	"github.com/hellgate75/general_utils/streams"
@@ -10,30 +11,49 @@ import (
 	"strconv"
 )
 
-func (this *gobParserStruct) DeserializeFromFile(filePath string, mask common.Type) error {
-	var bytes []byte
+func (this *gobParserStruct) DeserializeFromFile(filePath string, out interface{}) error {
+	var byteArray []byte
 	var err error
-	if bytes, err = streams.LoadFileBytes(filePath); err == nil {
-		return this.DeserializeFromBytes(bytes, mask)
+	if byteArray, err = streams.LoadFileBytes(filePath); err == nil {
+		var length interface{} = "<null>"
+		if byteArray != nil && len(byteArray) > 0 {
+			length = strconv.Itoa(len(byteArray))
+		} else {
+			return errors.New("GoLang Parser :: Null or empty set of bytes!!!")
+		}
+		buff := bytes.NewBuffer(byteArray)
+		enc := gob.NewDecoder(buff)
+		if err := enc.Decode(out); err == nil {
+
+			if logger != nil {
+				logger.Debug(fmt.Sprintf("GoLang Parser :: Successful Deserialized bytes : %v", length))
+			}
+			return err
+		} else {
+			if logger != nil {
+				logger.Error(err)
+			}
+			return err
+		}
 	} else {
 		return err
 	}
 }
 
-func (this *gobParserStruct) DeserializeFromBytes(byteArray []byte, mask common.Type) error {
+func (this *gobParserStruct) DeserializeFromBytes(byteArray []byte, out interface{}) error {
+	var length interface{} = "<null>"
+	if byteArray != nil && len(byteArray) > 0 {
+		length = strconv.Itoa(len(byteArray))
+	} else {
+		return errors.New("GoLang Parser :: Input null or empty set of bytes!!!")
+	}
 	buff := bytes.NewBuffer(byteArray)
 	enc := gob.NewDecoder(buff)
-	if err := enc.Decode(mask); err == nil {
-		var length interface{} = "<null>"
-		byteArray = buff.Bytes()
-		if byteArray != nil {
-			length = strconv.Itoa(len(byteArray))
-		}
-
+	if err := enc.Decode(out); err == nil {
 		if logger != nil {
 			logger.Debug(fmt.Sprintf("GoLang Parser :: Successful Deserialized bytes : %v", length))
 		}
-		return nil
+		return err
 	} else {
 		if logger != nil {
 			logger.Error(err)

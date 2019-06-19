@@ -21,8 +21,9 @@ func TestNewProcessManager(t *testing.T) {
 	}
 	pm.Start()
 	for pm.Running() {
-		time.Sleep(300 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 	}
+	//	fmt.Println(fmt.Sprintf("1.State: %v", pm.Status()))
 	if pm.Status() != DONE {
 		t.Fatal("ProcessManager::error : Unable to Complete tasks")
 	}
@@ -57,6 +58,7 @@ func TestProcessManagerChannels(t *testing.T) {
 		}
 
 	}
+	//	fmt.Println(fmt.Sprintf("2.State: %v", pm.Status()))
 	if pm.Status() != ERROR {
 		t.Fatal("ProcessManager::error : Unable to Complete tasks")
 	}

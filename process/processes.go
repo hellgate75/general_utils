@@ -75,8 +75,9 @@ func (m *processManagerStruct) Start() {
 	if m._function == nil {
 		panic("ProcessManager::error : Please call Init before Start of Process Manager")
 	}
-	m._progess = false
-	go m.startProcess()
+	m._progess = true
+	m._state = STARTING
+	m.startProcess()
 }
 
 func (m *processManagerStruct) Running() bool {
@@ -91,7 +92,6 @@ func (m *processManagerStruct) startProcess() {
 	if logger != nil {
 		logger.Debug("Starting ...")
 	}
-	m._state = STARTING
 	m._progess = true
 	REG_PID++
 	m.Pid = REG_PID
