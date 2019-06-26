@@ -55,6 +55,12 @@ type Server interface {
 	Clients() []ClientRef
 	// Log on specific interface channel
 	// Parameters:
-	//   channel (chan interface{}) Output channel for server logging activities
-	LogOn(channel chan interface{})
+	//   channel (*chan interface{}) Output channel pointer for server logging activities
+	// Returns:
+	//    error Any error that can occurs during computation
+	LogOn(channel *chan interface{}) error
+	// Log on specific interface channel
+	// Returns:
+	//    ServerLogger Current Server Logger Used by the server
+	Logger() ServerLogger
 }

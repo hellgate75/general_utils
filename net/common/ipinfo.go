@@ -26,7 +26,11 @@ type IPAddressInfo struct {
 func GetIpAddressInfo(ipAddr string) (*IPAddressInfo, error) {
 	ip := net.ParseIP(ipAddr)
 	if ip == nil {
-		return nil, errors.New(fmt.Sprintf("Unable to parse IP address : %s. Address should use IPv4 dot-notation or IPv6 colon-notation.", ipAddr))
+		message := fmt.Sprintf("Unable to parse IP address : %s. Address should use IPv4 dot-notation or IPv6 colon-notation.", ipAddr)
+		if logger != nil {
+			logger.ErrorS(message)
+		}
+		return nil, errors.New(message)
 	}
 
 	info := IPAddressInfo{

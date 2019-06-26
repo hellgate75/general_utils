@@ -16,27 +16,30 @@ type PortSyndacator interface {
 	Allocate(net.Conn) (*ClientRef, error)
 	// Deallocate Current Client
 	// Parameters:
-	//    ServerHablerFunc Represents one of client connection consumer to be removed
+	//    client (*ClientRef) Represents pointer to Element to Deallocate
 	// Returns:
 	//    error Any error that can occurs during computation
-	Deallocate(client ClientRef) error
-	// Remove Connection handling behaviour from list
+	Deallocate(client *ClientRef) error
+	// List of Stored Clients
 	// Returns:
-	//    error Any error that can occurs during computation
+	//    []ClientRef List of Stored Client Reference Information
 	List() []ClientRef
 	// Remove Connection handling behaviour from list
+	// Parameetrs:
+	//   port (Port) Required Client Port
 	// Returns:
-	//    error Any error that can occurs during computation
-	CheckAlives() error
+	//    (*ClientRef Required Client Reference Pointer,
+	//    error Any error that can occurs during computation)
+	ClientByPort(port Port) (*ClientRef, error)
 }
 
 type __portSyndacatorStruct struct {
-	__clientMap    map[Port]ClientRef
-	__portInterval PortInterval
+	ClientsMap   map[Port]ClientRef
+	PortInterval PortInterval
 }
 
 func (syn *__portSyndacatorStruct) Allocate(conn net.Conn) (*ClientRef, error) {
-	addr := conn.LocalAddr()
+	addr := conn.RemoteAddr()
 	addrInfo, err := GetIpAddressInfo(addr.String())
 	if err != nil {
 		return nil, err
@@ -45,12 +48,12 @@ func (syn *__portSyndacatorStruct) Allocate(conn net.Conn) (*ClientRef, error) {
 	if names, err := net.LookupAddr(addrInfo.Ip.String()); err == nil && len(names) > 0 {
 		host = names[0]
 	}
-	port := syn.__portInterval.Start
-	for _, ok := syn.__clientMap[port]; ok; {
+	port := syn.PortInterval.Start
+	for _, ok := syn.ClientsMap[port]; ok; {
 		port = Port(int(port) + 1)
 	}
-	if port < syn.__portInterval.Start || port > syn.__portInterval.End {
-		return nil, errors.New(fmt.Sprintf("None available port: Server Busy!! Provisioned port <%s> out of Range <%v, %v>", port, syn.__portInterval.Start, syn.__portInterval.End))
+	if port < syn.PortInterval.Start || port > syn.PortInterval.End {
+		return nil, errors.New(fmt.Sprintf("None available port: Server Busy!! Provisioned port <%v> out of Range <%v, %v>", port, syn.PortInterval.Start, syn.PortInterval.End))
 	}
 	cr := ClientRef{
 		Address:    *addrInfo,
@@ -61,22 +64,38 @@ func (syn *__portSyndacatorStruct) Allocate(conn net.Conn) (*ClientRef, error) {
 		IsAlive:    true,
 		Connection: conn,
 	}
-	syn.__clientMap[port] = cr
+	syn.ClientsMap[port] = cr
 	return &cr, nil
+}
+
+func (syn *__portSyndacatorStruct) ClientByPort(port Port) (*ClientRef, error) {
+	if cli, ok := syn.ClientsMap[port]; ok {
+		return &cli, nil
+	} else {
+		return nil, errors.New(fmt.Sprintf("No Client Allocated at Port <%v>!!", port))
+	}
+
 }
 
 func (syn *__portSyndacatorStruct) Deallocate(client *ClientRef) error {
 	if client == nil {
 		return errors.New("Client Reference cannot be Nil")
 	}
-	delete(syn.__clientMap, client.ServerPort)
+	delete(syn.ClientsMap, client.ServerPort)
 	return nil
 }
 
 func (syn *__portSyndacatorStruct) List() []ClientRef {
 	var outList []ClientRef = []ClientRef{}
-	for _, val := range syn.__clientMap {
+	for _, val := range syn.ClientsMap {
 		outList = append(outList, val)
 	}
 	return outList
+}
+
+func NewPortSyndacator(interval PortInterval) PortSyndacator {
+	return &__portSyndacatorStruct{
+		make(map[Port]ClientRef),
+		interval,
+	}
 }

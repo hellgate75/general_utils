@@ -23,7 +23,9 @@ type CIDRInfo struct {
 func GetCIdrInfo(cidr string) (*CIDRInfo, error) {
 	ip, ipnet, err := net.ParseCIDR(cidr)
 	if err != nil {
-		fmt.Println("failed parsing CIDR address: ", err)
+		if logger != nil {
+			logger.ErrorS(fmt.Sprintf("failed parsing CIDR address: %s", err.Error()))
+		}
 		return nil, errors.New(fmt.Sprintf("Failed parsing CIDR address: %s, cause: %s", cidr, err.Error()))
 	}
 

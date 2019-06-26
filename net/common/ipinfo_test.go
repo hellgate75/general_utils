@@ -22,3 +22,11 @@ func TestGetIpAddressInfo(t *testing.T) {
 		t.Fatal("Unhappy path -> Expect any Exception : Not Arisen")
 	}
 }
+
+func TestGetIpAddressInfoUnhappyPath(t *testing.T) {
+	var ip_address string = "dsfdsdfsdf"
+	_, err := GetIpAddressInfo(ip_address)
+	if err == nil {
+		t.Fatal("Unexpected nil exception !!!")
+	}
+}

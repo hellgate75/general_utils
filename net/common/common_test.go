@@ -20,30 +20,6 @@ func TestServerTypes(t *testing.T) {
 	}
 }
 
-func TestLogLevels(t *testing.T) {
-	if TRACE != LogLevel(1) {
-		t.Fatal(fmt.Sprintf("Wrong Values - Expected: <%v> but Given: <%v>", LogLevel(1), TRACE))
-	}
-	if DEBUG != LogLevel(2) {
-		t.Fatal(fmt.Sprintf("Wrong Values - Expected: <%v> but Given: <%v>", LogLevel(2), DEBUG))
-	}
-	if INFO != LogLevel(3) {
-		t.Fatal(fmt.Sprintf("Wrong Values - Expected: <%v> but Given: <%v>", LogLevel(3), INFO))
-	}
-	if WARNING != LogLevel(4) {
-		t.Fatal(fmt.Sprintf("Wrong Values - Expected: <%v> but Given: <%v>", LogLevel(4), WARNING))
-	}
-	if ERROR != LogLevel(5) {
-		t.Fatal(fmt.Sprintf("Wrong Values - Expected: <%v> but Given: <%v>", LogLevel(5), ERROR))
-	}
-	if FATAL != LogLevel(6) {
-		t.Fatal(fmt.Sprintf("Wrong Values - Expected: <%v> but Given: <%v>", LogLevel(6), FATAL))
-	}
-	if NO_LOG != LogLevel(7) {
-		t.Fatal(fmt.Sprintf("Wrong Values - Expected: <%v> but Given: <%v>", LogLevel(6), NO_LOG))
-	}
-}
-
 func TestServerStateSignals(t *testing.T) {
 	if RUNNING != ServerStateSignal(500) {
 		t.Fatal(fmt.Sprintf("Wrong Values - Expected: <%v> but Given: <%v>", ServerStateSignal(500), RUNNING))

@@ -1,8 +1,19 @@
 package common
 
 import (
+	"github.com/hellgate75/general_utils/log"
 	"net"
 )
+
+var logger log.Logger
+
+func InitLogger() {
+	currentLogger, err := log.New("net")
+	if err != nil {
+		panic(err.Error())
+	}
+	logger = currentLogger
+}
 
 // Type that describes Server Type
 type ServerType int
@@ -16,26 +27,6 @@ const (
 	REST ServerType = iota + 1
 	// Web Content Server Type
 	CONTENT ServerType = iota + 1
-)
-
-// Type that describes Server Log Level
-type LogLevel int
-
-const (
-	// TRACE Log Level - High Verbosity
-	TRACE LogLevel = iota + 1
-	// DEBUG Log Level - Development Verbosity
-	DEBUG
-	// INFO Log Level - Standard Verbosity
-	INFO
-	// WARNING Log Level - Advice and Notifications Verbosity
-	WARNING
-	// ERROR Log Level - Application Errors Only Verbosity
-	ERROR
-	// FATAL Log Level - System Crash Verbosity
-	FATAL
-	// NO_LOG Log Level - Not Logging
-	NO_LOG
 )
 
 // Type that describes Server State
@@ -57,24 +48,6 @@ const (
 	// STOPPED Server State - Server stopped computation, ready for shutdown
 	STOPPED
 )
-
-type ServerLogger interface {
-	// Starts Logger
-	// Returns:
-	//    error Any error that can occurs during computation
-	Open() error
-	// Stops Logger
-	// Returns:
-	//    error Any error that can occurs during computation
-	Close() error
-	// Log an interface in the logging system
-	// Parameters:
-	//    logLevel (LogLevel) Capping Log Level
-	//    message (interface{}) Message to be logged
-	// Returns:
-	//    error Any error that can occurs during computation
-	Log(logLevel LogLevel, message interface{}) error
-}
 
 // Structure that describes Server Context
 type ServerContext struct {
