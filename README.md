@@ -1,7 +1,7 @@
 # general_utils
 <p align="right"><img src="https://travis-ci.org.svg?branch=master" alt="trevis-ci" width="98" height="20" />&nbsp;<a href="https://travis-ci.org">Check last build on Travis-CI</a></p><br/>
 
-<p align="center"><image src="/images/golang.png"></image><br/><div align="center">ry</h5></div></p><br/>
+<p align="center"><image src="/images/golang.png"></image><br/><div style="width: 100%; text-align: center;" align="center">ry</h5></div></p><br/>
 
 
 GoLang general utility libraries for supporting GoLanguage program development, and code write acceleration. 
