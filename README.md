@@ -1,4 +1,4 @@
-# general_utils
+# General Utilities (general_utils)
 <p align="right"><img src="https://travis-ci.org.svg?branch=master" alt="trevis-ci" width="98" height="20" />&nbsp;<a href="https://travis-ci.org">Check last build on Travis-CI</a></p><br/>
 
 <p align="center"><image src="/images/golang.png"></image><br/><div style="width: 100%; text-align: center;" align="center">GoLang Library</h5></div></p><br/>
