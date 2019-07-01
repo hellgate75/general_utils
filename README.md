@@ -28,3 +28,7 @@ Packages :
 All packages are internal logger ready, integrated and full working.
 
 The idea is to create a collection of undefined basic features, used as accelerator for GoLanguage software development and product integration
+
+
+In the pure spirit of open source we release this library in [GNU Lesser General Public License v3.0](/LICENSE), please see license for details.
+It's an open use license, that allow people to work on it and extends, requiring to stakeholders to improve code into this project, for common use and general/global purposes.
