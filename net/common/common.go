@@ -8,7 +8,7 @@ import (
 var logger log.Logger
 
 func InitLogger() {
-	currentLogger, err := log.New("net")
+	currentLogger, err := log.New("net/common")
 	if err != nil {
 		panic(err.Error())
 	}

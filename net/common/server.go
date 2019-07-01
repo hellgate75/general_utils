@@ -63,4 +63,8 @@ type Server interface {
 	// Returns:
 	//    ServerLogger Current Server Logger Used by the server
 	Logger() ServerLogger
+	// Wait for Server to Stop
+	// Returns:
+	//    error Any error that can occurs during computation
+	WaitFor() error
 }
