@@ -136,7 +136,7 @@ func TestDecodeBytes(t *testing.T) {
 }
 
 func TestCorrectInput(t *testing.T) {
-	var expected string = "Test"
+	var expected string = "test"
 	var input string = "  Test  "
 	output := CorrectInput(input)
 	if expected != output {

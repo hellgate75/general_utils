@@ -37,11 +37,11 @@ func TestNewSerializable(t *testing.T) {
 	if !ok2 {
 		t.Fatal("Error checking SetFromMap method into the default serializable interface")
 	}
-	if m2.Type.NumOut() != 1 {
-		t.Fatal(fmt.Sprintf("Error in number of in args in SetFromMap : Expected <%d> but Given <%d>", 1, m2.Type.NumIn()))
+	if m2.Type.NumOut() != 2 {
+		t.Fatal(fmt.Sprintf("Error in number of in args in SetFromMap : Expected <%d> but Given <%d>", 2, m2.Type.NumIn()))
 	}
 	if m2.Type.NumIn() != 2 {
-		t.Fatal(fmt.Sprintf("Error in number of in args in SetFromMap : Expected <%d> but Given <%d>", 1, m2.Type.NumIn()-m2.Type.NumOut()))
+		t.Fatal(fmt.Sprintf("Error in number of in args in SetFromMap : Expected <%d> but Given <%d>", 2, m2.Type.NumIn()-m2.Type.NumOut()))
 	}
 	if m2.Type.In(1).Kind().String() != "map" {
 		t.Fatal(fmt.Sprintf("Error in type of in args in SetFromMap : Expected <%s> but Given <%s>", "map", m2.Type.In(1).Kind().String()))

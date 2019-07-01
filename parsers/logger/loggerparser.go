@@ -23,7 +23,7 @@ func LoadLoggerConfigFromFile(encoding parsers.Encoding, filePath string) (*log.
 	}
 	var conf log.LogConfig = log.LogConfig{}
 	//TODO: Complete Remapping structure
-	err = parser.DeserializeFromFile(filePath, conf)
+	err = parser.DeserializeFromFile(filePath, &conf)
 	return &conf, err
 }
 
