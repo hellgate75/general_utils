@@ -34,10 +34,11 @@ var pagePath = regexp.MustCompile(".*\\.(template|htm|html)$")
 var servicePath = regexp.MustCompile("/([a-zA-Z0-9_-]+)$")
 
 type __webServerStruct struct {
-	__running bool
-	Config    *common.ServerConfig
-	Context   *ServerContext
-	__logger  common.ServerLogger
+	__running        bool
+	Config           *common.ServerConfig
+	Context          *ServerContext
+	__logger         common.ServerLogger
+	__notFoundAction common.HTTPAction
 }
 
 func writeFileToWriter(path string, file string, w http.ResponseWriter) error {
@@ -88,6 +89,7 @@ func (ws *__webServerStruct) __httpRequestHandler(w http.ResponseWriter, r *http
 			} else {
 				fmt.Println(message)
 			}
+			ws.__notFoundAction(w, r)
 			return
 		}
 		err = pg.RenderOn(w)
@@ -99,6 +101,8 @@ func (ws *__webServerStruct) __httpRequestHandler(w http.ResponseWriter, r *http
 			} else {
 				fmt.Println(message)
 			}
+			ws.__notFoundAction(w, r)
+			return
 		}
 	} else {
 		i := ws.Context.Validator.ImageValidator.FindStringSubmatch(path)
@@ -114,6 +118,8 @@ func (ws *__webServerStruct) __httpRequestHandler(w http.ResponseWriter, r *http
 				} else {
 					fmt.Println(message)
 				}
+				ws.__notFoundAction(w, r)
+				return
 			}
 		} else {
 			s := ws.Context.Validator.ScriptsValidator.FindStringSubmatch(path)
@@ -129,6 +135,8 @@ func (ws *__webServerStruct) __httpRequestHandler(w http.ResponseWriter, r *http
 					} else {
 						fmt.Println(message)
 					}
+					ws.__notFoundAction(w, r)
+					return
 				}
 			} else {
 				se := ws.Context.Validator.ServiceValidator.FindStringSubmatch(path)
@@ -159,6 +167,7 @@ func (ws *__webServerStruct) __httpRequestHandler(w http.ResponseWriter, r *http
 						} else {
 							fmt.Println(message)
 						}
+						ws.__notFoundAction(w, r)
 						return
 					}
 					err = pg.RenderOn(w)
@@ -170,6 +179,8 @@ func (ws *__webServerStruct) __httpRequestHandler(w http.ResponseWriter, r *http
 						} else {
 							fmt.Println(message)
 						}
+						ws.__notFoundAction(w, r)
+						return
 					}
 				} else {
 					var message string = fmt.Sprintf("Uknown type for pattern : %s", path)
@@ -179,6 +190,8 @@ func (ws *__webServerStruct) __httpRequestHandler(w http.ResponseWriter, r *http
 					} else {
 						fmt.Println(message)
 					}
+					ws.__notFoundAction(w, r)
+					return
 				}
 			}
 		}
@@ -262,13 +275,22 @@ func (ws *__webServerStruct) Clients() []common.ClientRef {
 	return []common.ClientRef{}
 }
 func (ws *__webServerStruct) LogOn(channel *chan interface{}) error {
-	return errors.New("Not Implemeted!!")
+	return ws.__logger.AddOutChannel(channel)
 }
 func (ws *__webServerStruct) Logger() common.ServerLogger {
 	return ws.__logger
 }
 
-func newWebServer(baseFolder string, config common.ServerConfig, env map[string]interface{}, validator *WebServerValidator) common.Server {
+// Define New Web server based on inpuit parameters
+// Paarameters:
+//    baseFolder (string) Base FS folder that container content sources
+//    config (common.ServerConfig) Server initialization parameters group
+//    env (map[string]interface{}) Map of environment items
+//    validator (*WebServerValidator) Pointer to Web Server Service/Call Validator
+//    notFoundAction (*common.HTTPAction) Pointer to 404 (Not found) state http handler
+// Returns:
+//    common.Server Web Server Instance
+func NewWebServer(baseFolder string, config common.ServerConfig, env map[string]interface{}, validator *WebServerValidator, notFoundAction *common.HTTPAction) common.Server {
 	if validator == nil {
 		validator = &WebServerValidator{
 			ImageValidator:   imagePath,
@@ -290,6 +312,10 @@ func newWebServer(baseFolder string, config common.ServerConfig, env map[string]
 			validator.ServiceValidator = servicePath
 		}
 	}
+	action := *notFoundAction
+	if action == nil {
+		action = common.DefaultNotFoundAction
+	}
 	context := &ServerContext{
 		ServerPath:  baseFolder,
 		Environment: env,
@@ -297,8 +323,9 @@ func newWebServer(baseFolder string, config common.ServerConfig, env map[string]
 	}
 	logger := common.NewServerLogger(config.LogLevel)
 	return &__webServerStruct{
-		Config:   &config,
-		Context:  context,
-		__logger: logger,
+		Config:           &config,
+		Context:          context,
+		__logger:         logger,
+		__notFoundAction: action,
 	}
 }

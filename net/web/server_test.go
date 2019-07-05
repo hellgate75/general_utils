@@ -46,8 +46,8 @@ func TestNewWebServer(t *testing.T) {
 	__testWebPage.Context.Environment["Host"] = "0.0.0.0"
 	__testWebPage.Context.ServerPath = baseFolder
 	__testWebPage.Save()
-	ws := newWebServer(baseFolder, config, __testWebPage.Context.Environment, nil)
-	ws = newWebServer(baseFolder, config, __testWebPage.Context.Environment, &WebServerValidator{})
+	ws := NewWebServer(baseFolder, config, __testWebPage.Context.Environment, nil, nil)
+	ws = NewWebServer(baseFolder, config, __testWebPage.Context.Environment, &WebServerValidator{}, nil)
 	defer func() {
 		os.RemoveAll(baseFolder)
 	}()

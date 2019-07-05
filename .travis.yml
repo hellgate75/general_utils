@@ -20,4 +20,4 @@ script:
  - go fmt .
  - gofmt -e -s -w .
  - travis_wait 20 go test -p 10 -timeout 20m -v -cover -covermode atomic ./...
- - go build -buildmode exe -pkgdir ./vendor .
+ - go build -buildmode=shared -pkgdir ./vendor .
