@@ -45,7 +45,6 @@ func TestNewServerLogger(t *testing.T) {
 	go func() {
 		time.Sleep(1 * time.Second)
 		err = serverLogger.Log(INFO, message)
-		fmt.Println(err)
 	}()
 	select {
 	case incoming = <-outChan:

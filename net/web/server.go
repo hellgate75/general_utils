@@ -312,9 +312,11 @@ func NewWebServer(baseFolder string, config common.ServerConfig, env map[string]
 			validator.ServiceValidator = servicePath
 		}
 	}
-	action := *notFoundAction
-	if action == nil {
+	var action common.HTTPAction
+	if notFoundAction == nil {
 		action = common.DefaultNotFoundAction
+	} else {
+		action = *notFoundAction
 	}
 	context := &ServerContext{
 		ServerPath:  baseFolder,

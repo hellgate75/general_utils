@@ -21,7 +21,7 @@ type __restServerStruct struct {
 	EntriesMap     RestEntriesMap
 	StateHandler   common.HttpStateHandler
 	ListeningPort  common.Port
-	__lock         sync.Locker
+	__lock         sync.RWMutex
 	__globalCache  common.RestCache
 	__serviceCache map[string]common.RestCache
 	__globalEnv    common.RestEnvironment
@@ -47,17 +47,17 @@ func (rest *__restServerStruct) __baseRestEntryActionFunc(w http.ResponseWriter,
 	if r.Method != "GET" && r.Method != "DELETE" {
 		query = r.PostForm
 	}
-	rest.__lock.Lock()
+	rest.__lock.RLock()
 	if restEndPoint, ok := rest.EntriesMap[path]; ok {
 		err = restEndPoint(rest.StateHandler, query, &rest.__serverPipe, w, r, rest)
 		if err != nil {
-			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest : %s", err.Error()))
+			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest '%s' : %s", path, err.Error()))
 		}
 	} else {
-		err = errors.New(fmt.Sprintf("Rest point not found : %s, Error 404"))
+		err = errors.New(fmt.Sprintf("Rest point '%s' not found, Error 404", path))
 		action, errAct := rest.StateHandler.GetActionByCode(404)
 		if errAct != nil {
-			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest : %s", errAct.Error()))
+			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest '%s' : %s", path, errAct.Error()))
 			rest.__lock.Unlock()
 			return
 		}
@@ -66,7 +66,7 @@ func (rest *__restServerStruct) __baseRestEntryActionFunc(w http.ResponseWriter,
 			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing status http action : %s", err.Error()))
 		}
 	}
-	rest.__lock.Unlock()
+	rest.__lock.RUnlock()
 	if err != nil {
 		rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest : %s", err.Error()))
 	}
