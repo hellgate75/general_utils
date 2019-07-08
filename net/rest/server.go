@@ -20,12 +20,13 @@ type RestEntriesMap map[string]RestEndpoint
 type __restServerStruct struct {
 	EntriesMap     RestEntriesMap
 	StateHandler   common.HttpStateHandler
+	ListeningHost  string
 	ListeningPort  common.Port
 	__lock         sync.RWMutex
-	__globalCache  common.RestCache
-	__serviceCache map[string]common.RestCache
-	__globalEnv    common.RestEnvironment
-	__serviceEnv   map[string]common.RestEnvironment
+	__globalCache  common.NetCache
+	__serviceCache map[string]common.NetCache
+	__globalEnv    common.NetEnvironment
+	__serviceEnv   map[string]common.NetEnvironment
 	__serverPipe   chan interface{}
 	__running      bool
 	__logger       common.ServerLogger
@@ -83,15 +84,15 @@ func (rest *__restServerStruct) Open() error {
 	rest.__running = true
 	rest.__logger.Open()
 	http.HandleFunc("/", rest.__baseRestEntryActionFunc)
-	http.ListenAndServe(fmt.Sprintf(":%v", rest.ListeningPort), nil)
+	http.ListenAndServe(fmt.Sprintf("%s:%v", rest.ListeningHost, rest.ListeningPort), nil)
 	rest.__serverPipe = make(chan interface{})
-	rest.__globalCache = make(common.RestCache)
-	rest.__globalEnv = make(common.RestEnvironment)
-	rest.__serviceCache = make(map[string]common.RestCache)
-	rest.__serviceEnv = make(map[string]common.RestEnvironment)
+	rest.__globalCache = make(common.NetCache)
+	rest.__globalEnv = make(common.NetEnvironment)
+	rest.__serviceCache = make(map[string]common.NetCache)
+	rest.__serviceEnv = make(map[string]common.NetEnvironment)
 	for k, _ := range rest.EntriesMap {
-		rest.__serviceCache[k] = make(common.RestCache)
-		rest.__serviceEnv[k] = make(common.RestEnvironment)
+		rest.__serviceCache[k] = make(common.NetCache)
+		rest.__serviceEnv[k] = make(common.NetEnvironment)
 	}
 	return err
 }
@@ -164,20 +165,20 @@ func (rest *__restServerStruct) Logger() common.ServerLogger {
 	return rest.__logger
 }
 
-func (rest *__restServerStruct) GetCacheEntries() *common.RestCache {
+func (rest *__restServerStruct) GetCacheEntries() *common.NetCache {
 	return &rest.__globalCache
 }
-func (rest *__restServerStruct) GetServiceCacheEntries(restPath string) *common.RestCache {
+func (rest *__restServerStruct) GetServiceCacheEntries(restPath string) *common.NetCache {
 	cache, ok := rest.__serviceCache[restPath]
 	if !ok {
 		return nil
 	}
 	return &cache
 }
-func (rest *__restServerStruct) GetServerEnv() *common.RestEnvironment {
+func (rest *__restServerStruct) GetServerEnv() *common.NetEnvironment {
 	return &rest.__globalEnv
 }
-func (rest *__restServerStruct) GetServiceEnv(restPath string) *common.RestEnvironment {
+func (rest *__restServerStruct) GetServiceEnv(restPath string) *common.NetEnvironment {
 	env, ok := rest.__serviceEnv[restPath]
 	if !ok {
 		return nil
@@ -188,15 +189,16 @@ func (rest *__restServerStruct) GetServiceEnv(restPath string) *common.RestEnvir
 // Define New Rest server based on inpuit parameters
 // Paarameters:
 //    logLevel (common.LogLevel) Server Log level verbosity
+//    host (string) Server Listening Host/IP address
 //    port (common.Port) Server Listening port
-//    stateHandler (common.HttpStateHandler) Http State Handler, passed to Rest service (see common.NewHttpStateHandler function)
 //     entriesMap (RestEntriesMap) Rest Endpoint entries map
 // Returns:
 //    common.Server Rest Server Instance
-func NewRestServer(logLevel common.LogLevel, port common.Port, stateHandler common.HttpStateHandler, entriesMap RestEntriesMap) common.Server {
+func NewRestServer(logLevel common.LogLevel, host string, port common.Port, stateHandler common.HttpStateHandler, entriesMap RestEntriesMap) common.Server {
 	logger := common.NewServerLogger(logLevel)
 	return &__restServerStruct{
 		ListeningPort: port,
+		ListeningHost: host,
 		__logger:      logger,
 		StateHandler:  stateHandler,
 		EntriesMap:    entriesMap,

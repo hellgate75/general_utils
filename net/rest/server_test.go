@@ -35,14 +35,14 @@ func TestNewRestServer(t *testing.T) {
 	}
 	var endPointMap map[string]RestEndpoint = make(map[string]RestEndpoint)
 	var expectedEntriesJsonMessage string = "[{\"name\":\"William\",\"surnamer\":\"Smith\",\"age\":\"47\"},{\"name\":\"Mark\",\"surnamer\":\"White\",\"age\":\"27\"}]"
-	entriesEndointFunc := func(handler common.HttpStateHandler, query url.Values, outChan *chan interface{}, w http.ResponseWriter, r *http.Request, ctx common.RestContext) error {
+	entriesEndointFunc := func(handler common.HttpStateHandler, query url.Values, outChan *chan interface{}, w http.ResponseWriter, r *http.Request, ctx common.NetContext) error {
 		w.WriteHeader(200)
 		w.Write([]byte(expectedEntriesJsonMessage))
 		return nil
 	}
 	endPointMap["/entries"] = RestEndpoint(entriesEndointFunc)
 	var entriesMap RestEntriesMap = RestEntriesMap(endPointMap)
-	var restServer common.Server = NewRestServer(logLevel, port, stateHandler, entriesMap)
+	var restServer common.Server = NewRestServer(logLevel, "", port, stateHandler, entriesMap)
 	go restServer.Open()
 	defer func() {
 		restServer.Close()

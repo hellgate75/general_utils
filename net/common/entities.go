@@ -167,34 +167,34 @@ func NewHttpStateHandler(errorMap map[int]HTTPAction) (HttpStateHandler, error) 
 }
 
 // Rest Action function type
-type RestAction func(HttpStateHandler, url.Values, *chan interface{}, http.ResponseWriter, *http.Request, RestContext) error
+type RestAction func(HttpStateHandler, url.Values, *chan interface{}, http.ResponseWriter, *http.Request, NetContext) error
 
-// Rest Cache Map type
-type RestCache map[interface{}]interface{}
+// Network Cache Map type
+type NetCache map[interface{}]interface{}
 
-// Rest Environment Map type
-type RestEnvironment map[interface{}]interface{}
+// Network Environment Map type
+type NetEnvironment map[interface{}]interface{}
 
-//Rest Service Context
-type RestContext interface {
+//Network Service Context
+type NetContext interface {
 	// Get Global Rest Server Cache Map
 	// Rerturns:
-	//    *RestCache Pointer to Rest Service Cache Map
-	GetCacheEntries() *RestCache
+	//    *NetCache Pointer to Rest Service Cache Map
+	GetCacheEntries() *NetCache
 	// Get Rest Endpoint Cache Map
 	// Parameters:
 	//    restPath (string) Rest Service path, kay for map storage
 	// Rerturns:
-	//    *RestCache Pointer to Endpoint Cache Map
-	GetServiceCacheEntries(restPath string) *RestCache
+	//    *NetCache Pointer to Endpoint Cache Map
+	GetServiceCacheEntries(restPath string) *NetCache
 	// Get Global Rest Server Environment Map
 	// Rerturns:
-	//    *RestEnvironment Pointer to Rest Service Environment Map
-	GetServerEnv() *RestEnvironment
+	//    *NetEnvironment Pointer to Rest Service Environment Map
+	GetServerEnv() *NetEnvironment
 	// Get Rest Endpoint Environment Map
 	// Parameters:
 	//    restPath (string) Rest Service path, kay for map storage
 	// Rerturns:
-	//    *RestEnvironment Pointer to Endpoint Environment Map
-	GetServiceEnv(restPath string) *RestEnvironment
+	//    *NetEnvironment Pointer to Endpoint Environment Map
+	GetServiceEnv(restPath string) *NetEnvironment
 }

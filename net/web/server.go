@@ -14,6 +14,7 @@ import (
 	"time"
 )
 
+// Http Response Handler element
 var HandlerFunc func(w http.ResponseWriter, r *http.Request) error
 
 //Define base validators used to redirect contect in the service to specific content

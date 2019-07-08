@@ -19,6 +19,8 @@ Packages :
 * [log](/log) - Package that contains custom and extensive logger engine features and utilities
 * [net](/net) - Package that contains networking utilities, exposing sub packages features
 * [net/common](/net/common) - Package that contains networking common types, features and utilities
+* [net/rest](/net/web) - Package that contains Rest Server features
+* [net/tcp](/net/web) - Package that contains Tcp Server features
 * [net/web](/net/web) - Package that contains Web Server features
 * [parser](/parser) - Package that contains entity parsing utilities in multiple formats with standard interfaces
 * [parser/logger](/parser/logger) - Package that contains logger parser features
