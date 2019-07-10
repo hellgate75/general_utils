@@ -21,7 +21,7 @@ func TestNewTcpServer(t *testing.T) {
 	}
 	tcpActionsList = append(tcpActionsList, entriesEndpointFunc)
 	var entriesList TcpEntriesList = TcpEntriesList(tcpActionsList)
-	var restServer common.Server = NewTcpServer(logLevel, "", port, entriesList, nil)
+	var restServer common.Server = NewTcpServer(logLevel, "localhost", port, entriesList, nil)
 	go restServer.Open()
 	defer func() {
 		restServer.Close()

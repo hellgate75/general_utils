@@ -288,8 +288,8 @@ func TestCustomLoggerLevelBlocking(t *testing.T) {
 	}()
 	//Only Info should pass the logging and not the Debug message
 	logTestModeEnabled = true
-	logger.Debug(testMessage2)
 	logger.Info(testMessage)
+	logger.Debug(testMessage2)
 	for logTestModeEnabled {
 		time.Sleep(500 * time.Millisecond)
 		if err != nil {

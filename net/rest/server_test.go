@@ -42,7 +42,7 @@ func TestNewRestServer(t *testing.T) {
 	}
 	endPointMap["/entries"] = RestEndpoint(entriesEndointFunc)
 	var entriesMap RestEntriesMap = RestEntriesMap(endPointMap)
-	var restServer common.Server = NewRestServer(logLevel, "", port, stateHandler, entriesMap)
+	var restServer common.Server = NewRestServer(logLevel, "localhost", port, stateHandler, entriesMap)
 	go restServer.Open()
 	defer func() {
 		restServer.Close()
