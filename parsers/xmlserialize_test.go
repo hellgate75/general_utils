@@ -38,7 +38,7 @@ func TestXmlSerializeToFileAndDeserializeFromFile(t *testing.T) {
 	if xmlParserErr != nil {
 		t.Fatal(fmt.Sprintf("Parser Creation - Arisen unexpected error : %s", xmlParserErr.Error()))
 	}
-	os.MkdirAll(testFolderXml, 666)
+	os.MkdirAll(testFolderXml, 0777)
 	defer func(testFolder string) {
 		os.RemoveAll(testFolder)
 	}(testFolderXml)
@@ -66,7 +66,7 @@ func TestXmlSerializeToByesAndDeserializeFromBytes(t *testing.T) {
 	if xmlParserErr != nil {
 		t.Fatal(fmt.Sprintf("Parser Creation - Arisen unexpected error : %s", xmlParserErr.Error()))
 	}
-	os.MkdirAll(testFolderXml, 666)
+	os.MkdirAll(testFolderXml, 0777)
 	defer func(testFolder string) {
 		os.RemoveAll(testFolder)
 	}(testFolderXml)

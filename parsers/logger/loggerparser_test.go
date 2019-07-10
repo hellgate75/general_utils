@@ -72,7 +72,7 @@ func TestLoadLoggerConfigFromFile(t *testing.T) {
 	if errP != nil {
 		t.Fatal(fmt.Sprintf("Parser Creating - Arisen unexpected error : %s", errP.Error()))
 	}
-	os.MkdirAll(testFolder, 666)
+	os.MkdirAll(testFolder, 0777)
 	defer func(testFolder string) {
 		os.RemoveAll(testFolder)
 	}(testFolder)

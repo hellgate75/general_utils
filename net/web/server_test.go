@@ -24,19 +24,19 @@ func TestNewWebServer(t *testing.T) {
 	__initTests()
 	baseFolder := fmt.Sprintf("%s%s%s%s%s%s%s%s%s%s%s", streams.GetCurrentPath(), __fileSeparator, "..", __fileSeparator, "..", __fileSeparator, "test", __fileSeparator, "servers", __fileSeparator, "web")
 	__testWebPage.Body = []byte(__getEnrichedPageTemplateCode())
-	os.MkdirAll(baseFolder, 0666)
+	os.MkdirAll(baseFolder, 0777)
 
 	byteArr, errImg := ioutil.ReadFile(fmt.Sprintf("%s/testdata/golang.png", streams.GetCurrentPath()))
 	if errImg != nil {
 		t.Fatal(fmt.Sprintf("Error reading sample image : %s", errImg.Error()))
 	} else {
-		ioutil.WriteFile(fmt.Sprintf("%s%s%s", baseFolder, __fileSeparator, "golang.png"), byteArr, 0666)
+		ioutil.WriteFile(fmt.Sprintf("%s%s%s", baseFolder, __fileSeparator, "golang.png"), byteArr, 0777)
 	}
 	byteArr, errImg = ioutil.ReadFile(fmt.Sprintf("%s/testdata/sample.js", streams.GetCurrentPath()))
 	if errImg != nil {
 		t.Fatal(fmt.Sprintf("Error reading sample javascript : %s", errImg.Error()))
 	} else {
-		ioutil.WriteFile(fmt.Sprintf("%s%s%s", baseFolder, __fileSeparator, "sample.js"), byteArr, 0666)
+		ioutil.WriteFile(fmt.Sprintf("%s%s%s", baseFolder, __fileSeparator, "sample.js"), byteArr, 0777)
 	}
 	config := common.ServerConfig{
 		ListeningPort: 8080,

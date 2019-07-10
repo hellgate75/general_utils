@@ -40,7 +40,7 @@ func TestBinarySerializeToFileAndDeserializeFromFile(t *testing.T) {
 	if binaryParserErr != nil {
 		t.Fatal(fmt.Sprintf("Parser Creation - Arisen unexpected error : %s", binaryParserErr.Error()))
 	}
-	os.MkdirAll(testFolderBinary, 666)
+	os.MkdirAll(testFolderBinary, 0777)
 	defer func(testFolder string) {
 		os.RemoveAll(testFolder)
 	}(testFolderBinary)
@@ -68,7 +68,7 @@ func TestBinarySerializeToByesAndDeserializeFromBytes(t *testing.T) {
 	if binaryParserErr != nil {
 		t.Fatal(fmt.Sprintf("Parser Creation - Arisen unexpected error : %s", binaryParserErr.Error()))
 	}
-	os.MkdirAll(testFolderBinary, 666)
+	os.MkdirAll(testFolderBinary, 0777)
 	defer func(testFolder string) {
 		os.RemoveAll(testFolder)
 	}(testFolderBinary)

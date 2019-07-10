@@ -102,7 +102,7 @@ func WriteTestResources() bool {
 	//	logManager.Debug("I will survive")
 	var config log.LogConfig = _getTestConfig1()
 	var path string = streams.GetCurrentPath() + fmt.Sprintf("%c", os.PathSeparator) + "test" + fmt.Sprintf("%c", os.PathSeparator) + "resources"
-	os.MkdirAll(path, 666)
+	os.MkdirAll(path, 0777)
 	var filePath string = path + fmt.Sprintf("%c", os.PathSeparator) + logFileName
 
 	parser1, _ := parsers.New(parsers.YAML)

@@ -68,7 +68,7 @@ func (p *WebPage) Save() error {
 		}
 		return err
 	}
-	err = ioutil.WriteFile(filename, p.Body, 0660)
+	err = ioutil.WriteFile(filename, p.Body, 0777)
 	if err != nil {
 		if logger != nil {
 			logger.Error(err)

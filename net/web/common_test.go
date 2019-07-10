@@ -43,7 +43,7 @@ func __initTests() {
 		Extension: "template",
 		Context:   __testContext,
 	}
-	os.MkdirAll(__testContext.ServerPath, 0666)
+	os.MkdirAll(__testContext.ServerPath, 0777)
 }
 
 func __destroyTests() {
@@ -96,7 +96,7 @@ func TestWebPageLoad(t *testing.T) {
 	if err != nil {
 		t.Fatal(fmt.Sprintf("Unexpected error parsing page name, error is : %s", err.Error()))
 	}
-	err = ioutil.WriteFile(filename, []byte(__getDefaultPageCode()), 0660)
+	err = ioutil.WriteFile(filename, []byte(__getDefaultPageCode()), 0777)
 	if err != nil {
 		t.Fatal(fmt.Sprintf("Unexpected error saving page from file %s, error is : %s", filename, err.Error()))
 	}
@@ -121,7 +121,7 @@ func TestWebPageRender(t *testing.T) {
 	if err != nil {
 		t.Fatal(fmt.Sprintf("Unexpected error parsing page name, error is : %s", err.Error()))
 	}
-	err = ioutil.WriteFile(filename, []byte(__getDefaultPageCode()), 0660)
+	err = ioutil.WriteFile(filename, []byte(__getDefaultPageCode()), 0777)
 	if err != nil {
 		t.Fatal(fmt.Sprintf("Unexpected error saving page from file %s, error is : %s", filename, err.Error()))
 	}
@@ -146,7 +146,7 @@ func TestWebPageRender(t *testing.T) {
 	if text != expectedText {
 		t.Fatal(fmt.Sprintf("Error comparing values. Expected <%s> but Given <%s>", expectedText, text))
 	}
-	err = ioutil.WriteFile(filename, []byte(__getWrongPageCode()), 0660)
+	err = ioutil.WriteFile(filename, []byte(__getWrongPageCode()), 0777)
 	if err != nil {
 		t.Fatal(fmt.Sprintf("Unexpected error saving page from file %s, error is : %s", filename, err.Error()))
 	}
@@ -172,7 +172,7 @@ func TestWebPageRenderOn(t *testing.T) {
 	if err != nil {
 		t.Fatal(fmt.Sprintf("Unexpected error parsing page name, error is : %s", err.Error()))
 	}
-	err = ioutil.WriteFile(filename, []byte(__getDefaultPageCode()), 0660)
+	err = ioutil.WriteFile(filename, []byte(__getDefaultPageCode()), 0777)
 	if err != nil {
 		t.Fatal(fmt.Sprintf("Unexpected error saving page from file %s, error is : %s", filename, err.Error()))
 	}
@@ -199,7 +199,7 @@ func TestWebPageRenderOn(t *testing.T) {
 	if text != expectedText {
 		t.Fatal(fmt.Sprintf("Error comparing values. Expected <%s> but Given <%s>", expectedText, text))
 	}
-	err = ioutil.WriteFile(filename, []byte(__getWrongPageCode()), 0660)
+	err = ioutil.WriteFile(filename, []byte(__getWrongPageCode()), 0777)
 	if err != nil {
 		t.Fatal(fmt.Sprintf("Unexpected error saving page from file %s, error is : %s", filename, err.Error()))
 	}
@@ -227,7 +227,7 @@ func TestLoadWebPageFromFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(fmt.Sprintf("Unexpected error parsing page name, error is : %s", err.Error()))
 	}
-	err = ioutil.WriteFile(filename, []byte(__getDefaultPageCode()), 0660)
+	err = ioutil.WriteFile(filename, []byte(__getDefaultPageCode()), 0777)
 	if err != nil {
 		t.Fatal(fmt.Sprintf("Unexpected error saving page from file %s, error is : %s", filename, err.Error()))
 	}

@@ -114,7 +114,7 @@ func (this *base64ParserStruct) SerializeToFile(filePath string, mask common.Typ
 	var bytes []byte
 	var err error
 	if bytes, err = this.SerializeToBytes(mask); err == nil {
-		if err = ioutil.WriteFile(filePath, bytes, 666); err == nil {
+		if err = ioutil.WriteFile(filePath, bytes, 0777); err == nil {
 			if logger != nil {
 				logger.Debug(fmt.Sprintf("Base64 Parser :: File written: %s", filePath))
 			}

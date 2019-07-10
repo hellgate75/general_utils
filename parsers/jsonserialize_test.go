@@ -38,7 +38,7 @@ func TestJsonSerializeToFileAndDeserializeFromFile(t *testing.T) {
 	if jsonParserErr != nil {
 		t.Fatal(fmt.Sprintf("Parser Creation - Arisen unexpected error : %s", jsonParserErr.Error()))
 	}
-	os.MkdirAll(testFolderJson, 666)
+	os.MkdirAll(testFolderJson, 0777)
 	defer func(testFolder string) {
 		os.RemoveAll(testFolder)
 	}(testFolderJson)
@@ -66,7 +66,7 @@ func TestJsonSerializeToByesAndDeserializeFromBytes(t *testing.T) {
 	if jsonParserErr != nil {
 		t.Fatal(fmt.Sprintf("Parser Creation - Arisen unexpected error : %s", jsonParserErr.Error()))
 	}
-	os.MkdirAll(testFolderJson, 666)
+	os.MkdirAll(testFolderJson, 0777)
 	defer func(testFolder string) {
 		os.RemoveAll(testFolder)
 	}(testFolderJson)

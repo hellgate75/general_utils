@@ -32,7 +32,7 @@ func DownloadFile(filepath string, url string) error {
 		return err
 	}
 	// Writer the body to file
-	err = ioutil.WriteFile(filepath, body, 0666)
+	err = ioutil.WriteFile(filepath, body, 0777)
 	if err != nil {
 		if logger != nil {
 			logger.Error(err)

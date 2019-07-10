@@ -14,7 +14,7 @@ func TestNewTcpServer(t *testing.T) {
 	var port common.Port = common.Port(50837)
 	var tcpActionsList []TcpEndpoint
 
-	var expectedEntriesJsonMessage string = "[{\"name\":\"William\",\"surnamer\":\"Smith\",\"age\":\"47\"},{\"name\":\"Mark\",\"surnamer\":\"White\",\"age\":\"27\"}]"
+	var expectedEntriesJsonMessage string = "{\"list\" : [{\"name\":\"William\",\"surname\":\"Smith\",\"age\":\"47\"},{\"name\":\"Mark\",\"surname\":\"White\",\"age\":\"27\"}]}"
 	entriesEndpointFunc := func(conn net.Conn, outChan *chan interface{}, ctx common.NetContext) error {
 		conn.Write([]byte(expectedEntriesJsonMessage))
 		return nil

@@ -38,7 +38,7 @@ func TestBase64SerializeToFileAndDeserializeFromFile(t *testing.T) {
 	if base64ParserErr != nil {
 		t.Fatal(fmt.Sprintf("Parser Creation - Arisen unexpected error : %s", base64ParserErr.Error()))
 	}
-	os.MkdirAll(testFolderBase64, 666)
+	os.MkdirAll(testFolderBase64, 0777)
 	defer func(testFolder string) {
 		//os.RemoveAll(testFolder)
 	}(testFolderBase64)
@@ -66,7 +66,7 @@ func TestBase64SerializeToByesAndDeserializeFromBytes(t *testing.T) {
 	if base64ParserErr != nil {
 		t.Fatal(fmt.Sprintf("Parser Creation - Arisen unexpected error : %s", base64ParserErr.Error()))
 	}
-	os.MkdirAll(testFolderBase64, 666)
+	os.MkdirAll(testFolderBase64, 0777)
 	byteArray, err := base64Parser.SerializeToBytes(base64SampleData)
 	if err != nil {
 		t.Fatal(fmt.Sprintf("Parsing to Bytes - Arisen unexpected error : %s", err.Error()))

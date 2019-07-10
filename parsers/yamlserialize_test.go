@@ -38,7 +38,7 @@ func TestYamlSerializeToFileAndDeserializeFromFile(t *testing.T) {
 	if yamlParserErr != nil {
 		t.Fatal(fmt.Sprintf("Parser Creation - Arisen unexpected error : %s", yamlParserErr.Error()))
 	}
-	os.MkdirAll(testFolderYaml, 666)
+	os.MkdirAll(testFolderYaml, 0777)
 	defer func(testFolder string) {
 		os.RemoveAll(testFolder)
 	}(testFolderYaml)
@@ -66,7 +66,7 @@ func TestYamlSerializeToByesAndDeserializeFromBytes(t *testing.T) {
 	if yamlParserErr != nil {
 		t.Fatal(fmt.Sprintf("Parser Creation - Arisen unexpected error : %s", yamlParserErr.Error()))
 	}
-	os.MkdirAll(testFolderYaml, 666)
+	os.MkdirAll(testFolderYaml, 0777)
 	defer func(testFolder string) {
 		os.RemoveAll(testFolder)
 	}(testFolderYaml)

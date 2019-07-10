@@ -66,7 +66,7 @@ func (this *gobParserStruct) SerializeToFile(filePath string, mask common.Type) 
 	var bytes []byte
 	var err error
 	if bytes, err = this.SerializeToBytes(mask); err == nil {
-		if err = ioutil.WriteFile(filePath, bytes, 666); err == nil {
+		if err = ioutil.WriteFile(filePath, bytes, 0777); err == nil {
 			if logger != nil {
 				logger.Debug(fmt.Sprintf("GoLang Parser :: File written: %s", filePath))
 			}

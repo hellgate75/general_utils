@@ -38,7 +38,7 @@ func TestGolangSerializeToFileAndDeserializeFromFile(t *testing.T) {
 	if golangParserErr != nil {
 		t.Fatal(fmt.Sprintf("Parser Creation - Arisen unexpected error : %s", golangParserErr.Error()))
 	}
-	os.MkdirAll(testFolderGolang, 666)
+	os.MkdirAll(testFolderGolang, 0777)
 	defer func(testFolder string) {
 		os.RemoveAll(testFolder)
 	}(testFolderGolang)
@@ -66,7 +66,7 @@ func TestGolangSerializeToByesAndDeserializeFromBytes(t *testing.T) {
 	if golangParserErr != nil {
 		t.Fatal(fmt.Sprintf("Parser Creation - Arisen unexpected error : %s", golangParserErr.Error()))
 	}
-	os.MkdirAll(testFolderGolang, 666)
+	os.MkdirAll(testFolderGolang, 0777)
 	defer func(testFolder string) {
 		os.RemoveAll(testFolder)
 	}(testFolderGolang)
