@@ -15,30 +15,44 @@ import (
 )
 
 const (
-	logPath     string = "config"
+	// Default log Path
+	logPath string = "config"
+	// Default log file name
 	logFileName string = "log4go"
 )
 
+// Yellow color for command screen text
 var yellowColor func(interface{}) color.Value = color.Yellow
 
+// Red color for command screen text
+var redColor func(interface{}) color.Value = color.Red
+
 var (
+	// Default log configration file extensions
 	logFileExtensions []string = []string{"yaml", "json", "xml"}
 )
 
+// Enables Log to default Channel instead of target configuration
 func EnableLogChanMode() *chan interface{} {
 	log.LogChanEnabled = true
 	log.LogOutChan = make(chan interface{})
 	return &log.LogOutChan
 }
 
+// Disables Log to default Channel and restore log to target configuration
 func DisableLogChanMode() {
 	log.LogChanEnabled = false
 	log.LogOutChan = nil
 }
 
-var redColor func(interface{}) color.Value = color.Red
-
-func findFileInPath(folder string, fileName string, extensions []string) (string, string, error) {
+// Finds a file into a folder and look forward a file matching multiple file extensions
+// Parameters:
+//    folder (string) folder containing files
+//    fileName (string) file name without extension
+//    extensions ([]string) list of suitable file extensions
+// Returns:
+//    ( string absolute file path, stirng file extension, error Any error arisen during computation )
+func FindFileInPath(folder string, fileName string, extensions []string) (string, string, error) {
 	currentPath := streams.GetCurrentPath()
 	separator := fmt.Sprintf("%c", os.PathSeparator)
 	var basePath string = fmt.Sprintf("%s%s%s", currentPath, separator, folder)
@@ -64,7 +78,14 @@ func findFileInPath(folder string, fileName string, extensions []string) (string
 	return filePath, extension, fileErr
 }
 
-func decomposeFilePath(filePath string) (string, string, []string, error) {
+// Decompose a file path to recover most relevant information
+// Parameters:
+//    filePath (string) file absolute path (with extension)
+//    fileName (string) file name without extension
+//    extensions ([]string) list of suitable file extensions
+// Returns:
+//    ( string absolute file folder path, string absolute file path, []stirng list of suitable extensions, error Any error arisen during computation )
+func DecomposeFilePath(filePath string) (string, string, []string, error) {
 	if strings.TrimSpace(filePath) == "" {
 		return "", "", []string{}, errors.New("general_utils::error : Received in input an Empty String")
 	}
@@ -72,9 +93,6 @@ func decomposeFilePath(filePath string) (string, string, []string, error) {
 	var path string = ""
 	var file string = ""
 	separator := fmt.Sprintf("%c", os.PathSeparator)
-
-	fmt.Println("original path: ", filePath)
-	fmt.Println("separator: ", separator)
 
 	var idx1 int = strings.LastIndex(filePath, separator)
 	var idx2 int = strings.LastIndex(filePath, ".")
@@ -90,7 +108,7 @@ func decomposeFilePath(filePath string) (string, string, []string, error) {
 	return path, file, []string{extension}, nil
 }
 
-// Destroys and unregisters Logger.
+// Destroys and unregister Logger Engine
 func DestroyLoggerEngine() {
 	log.ResetStaticLoggerEngine()
 	log.LogOutChan = nil
@@ -113,7 +131,7 @@ func InitSimpleLoggerEngine(verbosity log.LogLevel) {
 // Returns:
 //   error Any suitable error risen during code execution
 func InitDeviceLoggerEngine() error {
-	filePath, extension, fErr := findFileInPath(logPath, logFileName, logFileExtensions)
+	filePath, extension, fErr := FindFileInPath(logPath, logFileName, logFileExtensions)
 	if fErr != nil {
 		return fErr
 	}
@@ -142,12 +160,12 @@ func InitDeviceLoggerEngine() error {
 //   error Any suitable error risen during code execution
 func InitCustomLoggerEngine(filePath string) error {
 	//TODO Complete!!
-	lLogPath, lLogFileName, lLogFileExtensions, lErr := decomposeFilePath(filePath)
+	lLogPath, lLogFileName, lLogFileExtensions, lErr := DecomposeFilePath(filePath)
 	if lErr != nil {
 		return lErr
 	}
 
-	filePath, extension, fErr := findFileInPath(lLogPath, lLogFileName, lLogFileExtensions)
+	filePath, extension, fErr := FindFileInPath(lLogPath, lLogFileName, lLogFileExtensions)
 	if fErr != nil {
 		return fErr
 	}
