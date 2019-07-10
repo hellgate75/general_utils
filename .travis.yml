@@ -22,5 +22,7 @@ script:
  - go fmt .
  - gofmt -e -s -w .
  - travis_wait 20 go test -p 10 -timeout 20m -v -cover -covermode atomic ./...
- - go build -buildmode=shared -pkgdir ./vendor .
+# No build on trevis-ci because of this error : "/home/travis/.gimme/versions/go1.11.linux.amd64/pkg/tool/linux_amd64/link: cannot implicitly include runtime/cgo in a shared library"
+# And this is not a shared library
+# - go build -buildmode=shared -pkgdir ./vendor .
  - echo "Build complete, Folks !!!"
