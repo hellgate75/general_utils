@@ -12,7 +12,7 @@ import (
 
 func TestNewRestServer(t *testing.T) {
 	var logLevel common.LogLevel = common.INFO
-	var port common.Port = common.Port(50837)
+	var port common.Port = common.Port(22100)
 	var stateHandler common.HttpStateHandler
 	var err error
 	var errorMap map[int]common.HTTPAction = make(map[int]common.HTTPAction)
@@ -54,7 +54,7 @@ func TestNewRestServer(t *testing.T) {
 	urlMap["Request"] = []string{"entriesList"}
 	urlMap["State"] = []string{"open"}
 	var values url.Values = url.Values(urlMap)
-	response, errR := http.PostForm("http://localhost:50837/entries", values)
+	response, errR := http.PostForm("http://localhost:22100/entries", values)
 	if errR != nil {
 		t.Fatal(fmt.Sprintf("Unexpected error requesting rest endpoint '/entries', Error is %s", errR.Error()))
 	}
