@@ -15,9 +15,9 @@ install:
  - go get -u github.com/golang/go/src/cmd/gofmt
 
 script:
- - pwd
  - chmod -Rf 777 *
  - dep ensure -update -v
+ - dep status
  - go vet .
  - go fmt .
  - gofmt -e -s -w .

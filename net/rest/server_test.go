@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
+	"time"
 )
 
 func TestNewRestServer(t *testing.T) {
@@ -17,18 +18,18 @@ func TestNewRestServer(t *testing.T) {
 	var errorMap map[int]common.HTTPAction = make(map[int]common.HTTPAction)
 	handle404Error := func(w http.ResponseWriter, r *http.Request) error {
 		var message404Json string = fmt.Sprintf("{code=\"404\",message=\"Rest Endpoint '%s': Not Found\"}", r.URL.Path)
-		w.WriteHeader(404)
+		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(message404Json))
 		return nil
 	}
-	errorMap[404] = common.HTTPAction(handle404Error)
+	errorMap[http.StatusNotFound] = common.HTTPAction(handle404Error)
 	handle500Error := func(w http.ResponseWriter, r *http.Request) error {
 		var message500Json string = fmt.Sprintf("{code=\"500\",message=\"Rest Endpoint '%s': Internal Server Error\"}", r.URL.Path)
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(message500Json))
 		return nil
 	}
-	errorMap[500] = common.HTTPAction(handle500Error)
+	errorMap[http.StatusInternalServerError] = common.HTTPAction(handle500Error)
 	stateHandler, err = common.NewHttpStateHandler(errorMap)
 	if err != nil {
 		t.Fatal(fmt.Sprintf("Error Creating New HttpStateHandler : %s", err.Error()))
@@ -48,6 +49,7 @@ func TestNewRestServer(t *testing.T) {
 		restServer.Close()
 		restServer.Destroy()
 	}()
+	time.Sleep(1 * time.Second)
 	var urlMap map[string][]string = make(map[string][]string)
 	urlMap["Request"] = []string{"entriesList"}
 	urlMap["State"] = []string{"open"}
