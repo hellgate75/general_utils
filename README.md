@@ -32,6 +32,9 @@ All packages are internal logger ready, integrated and full working.
 
 The idea is to create a collection of undefined basic features, used as accelerator for GoLanguage software development and product integration
 
+## Author
+[Fabrizio Torelli](https://ie.linkedin.com/in/fabriziotorelli) is Cloud/System Architect working in the IT sector since 1999.
+
 ## License
 
 In the pure spirit of open source we release this library in [GNU Lesser General Public License v3.0](/LICENSE), please see license for details.
