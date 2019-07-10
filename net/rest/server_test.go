@@ -36,7 +36,7 @@ func TestNewRestServer(t *testing.T) {
 	var endPointMap map[string]RestEndpoint = make(map[string]RestEndpoint)
 	var expectedEntriesJsonMessage string = "{\"list\" : [{\"name\":\"William\",\"surname\":\"Smith\",\"age\":\"47\"},{\"name\":\"Mark\",\"surname\":\"White\",\"age\":\"27\"}]}"
 	entriesEndointFunc := func(handler common.HttpStateHandler, query url.Values, outChan *chan interface{}, w http.ResponseWriter, r *http.Request, ctx common.NetContext) error {
-		w.WriteHeader(200)
+		//		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(expectedEntriesJsonMessage))
 		return nil
 	}
