@@ -271,15 +271,17 @@ func TestCustomLoggerLevelBlocking(t *testing.T) {
 	var testMessage2 string = "Test1"
 	var val interface{}
 	var err error
+	var testing bool = true
 	go func() {
 		select {
 		case val = <-log.LogOutChan:
 			fmt.Println("3.", val)
-			if strings.Index(fmt.Sprintf("%v", val), testMessage) < 0 {
+			if strings.Index(fmt.Sprintf("%v", val), testMessage) < 0 && testing {
 				err = errors.New("Unable to read proper log")
 			} else {
 				logTestModeEnabled = false
 			}
+			testing = false
 		case <-time.After(time.Second):
 			err = errors.New("Timeout reached")
 			//		default:

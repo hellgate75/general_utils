@@ -11,7 +11,7 @@ import (
 
 func TestNewTcpServer(t *testing.T) {
 	var logLevel common.LogLevel = common.INFO
-	var port common.Port = common.Port(50837)
+	var port common.Port = common.Port(22101)
 	var tcpActionsList []TcpEndpoint
 
 	var expectedEntriesJsonMessage string = "{\"list\" : [{\"name\":\"William\",\"surname\":\"Smith\",\"age\":\"47\"},{\"name\":\"Mark\",\"surname\":\"White\",\"age\":\"27\"}]}"
@@ -28,7 +28,7 @@ func TestNewTcpServer(t *testing.T) {
 		restServer.Destroy()
 	}()
 	time.Sleep(1 * time.Second)
-	conn, errR := net.Dial("tcp", "localhost:50837")
+	conn, errR := net.Dial("tcp", "localhost:22101")
 	if errR != nil {
 		t.Fatal(fmt.Sprintf("Unexpected error requesting tcp endpoint, Error is %s", errR.Error()))
 	}
