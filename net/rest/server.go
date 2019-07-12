@@ -191,7 +191,8 @@ func (rest *__restServerStruct) GetServiceEnv(restPath string) *common.NetEnviro
 //    logLevel (common.LogLevel) Server Log level verbosity
 //    host (string) Server Listening Host/IP address
 //    port (common.Port) Server Listening port
-//     entriesMap (RestEntriesMap) Rest Endpoint entries map
+//    stateHandler (common.HttpStateHandler) Http State Handler, replaced with default structure is case it's passed nil value
+//    entriesMap (RestEntriesMap) Rest Endpoint entries map
 // Returns:
 //    common.Server Rest Server Instance
 func NewRestServer(logLevel common.LogLevel, host string, port common.Port, stateHandler common.HttpStateHandler, entriesMap RestEntriesMap) common.Server {

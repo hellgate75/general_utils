@@ -279,8 +279,8 @@ func TestCustomLoggerLevelBlocking(t *testing.T) {
 		case val = <-log.LogOutChan:
 			fmt.Println("3.", val)
 			if strings.Index(fmt.Sprintf("%v", val), testMessage) < 0 && testing {
-				//				err = errors.New("Unable to read proper log")
-				logTestModeEnabled = false
+				err = errors.New("Unable to read proper log")
+				//				logTestModeEnabled = false
 			} else {
 				logTestModeEnabled = false
 			}

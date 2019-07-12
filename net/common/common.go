@@ -23,7 +23,7 @@ const (
 	TCP ServerType = iota + 1
 	// UDP Protocol Server Type
 	UDP
-	// REST Server Type
+	//	// REST Server Type
 	REST ServerType = iota + 1
 	// Web Content Server Type
 	CONTENT ServerType = iota + 1

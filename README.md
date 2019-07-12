@@ -12,6 +12,7 @@ Any of package is extremely and exhaustively tested, and ready for use. Into any
 
 Packages :
 
+* [base](/general_utils.md) - Default utilities features
 * [common](/common) - Package that contains data types, measures and dt conversions
 * [config](/config) - Package that contains GoLang (*.a) database utilities
 * [generics](/generics) - Package that contains experimental type generalization utilities

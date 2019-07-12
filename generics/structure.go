@@ -1,6 +1,7 @@
 package generics
 
 import (
+	"errors"
 	"fmt"
 	errs "github.com/hellgate75/general_utils/errors"
 	"reflect"
@@ -143,34 +144,27 @@ func PrepareFileStructMap(element interface{}) (map[string]FieldConfig, error) {
 // Returns:
 //   error Any arror that can occur during the computation
 func SetFromMapImpl(yourInterface interface{}, attributes map[string]interface{}) (interface{}, error) {
-	var fieldList []FieldConfig
+	//	var fieldList []FieldConfig
 	//	var wrongFieldList []FieldConfig
 	//	var discardedFieldList []FieldConfig
-	var yourValue reflect.Value = reflect.Indirect(reflect.ValueOf(yourInterface))
-	var yourType reflect.Type = yourValue.Type()
-	var attributesMap []reflect.StructField
+	//	var yourValue reflect.Value = reflect.Indirect(reflect.ValueOf(yourInterface))
+	//	var yourElement reflect.Value = reflect.Indirect(reflect.ValueOf(yourInterface)).Elem()
+	yourElement := reflect.ValueOf(&yourInterface).Elem()
+	//	var yourType reflect.Type = yourValue.Type()
+	//	var attributesMap []reflect.StructField
 	var err error
+	defer func() {
+		itf := recover()
+		if errs.IsError(itf) {
+			err = itf.(error)
+		}
+	}()
 	for k, v := range attributes {
-		if fd, ok := yourType.FieldByName(k); ok {
-			targetValue := reflect.ValueOf(v)
-			targetValueType := targetValue.Type()
-
-			isNil := false
-
-			fmt.Println(targetValue.Kind())
-
-			//			if targetValue.Kind() == reflect.Struct {
-			//				isNil = targetValue.IsNil()
-			//			}
-			conf := FieldConfig{
-				k,
-				targetValueType,
-				targetValue,
-				isNil,
-				fd,
+		if fd := yourElement.FieldByName(k); fd.IsValid() {
+			if !fd.CanSet() {
+				return yourInterface, errors.New(fmt.Sprintf("Field Name '%s' cannot be setted up!!!", fd.Type().Name()))
 			}
-			fieldList = append(fieldList, conf)
-			attributesMap = append(attributesMap, fd)
+			fd.Set(reflect.ValueOf(v))
 		}
 	}
 	//	for _, field := range fieldList {
@@ -272,7 +266,7 @@ func SetFromMapImpl(yourInterface interface{}, attributes map[string]interface{}
 	//		}
 	//		err = errors.New(errorMessage)
 	//	}
-	return nil, err
+	return yourInterface, err
 }
 
 // Returns a new Emty serializable object instance

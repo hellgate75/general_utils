@@ -67,14 +67,13 @@ func TestExtendedSerializableStruct(t *testing.T) {
 	if !ok1 || !ok2 || !ok3 || nameMap != name || ageMap != age || bd != now {
 		t.Fatal(fmt.Sprintf("Error Reading object : Expected <%v> but Given <%v>", mp, attributesMap))
 	}
-	//	mp.Se
-	//	fmt.Println(fmt.Sprintf("%v", mp))
-	//	var newAge int = 45
-	//	attributesMap["Age"] = newAge
-	//	mp.SetFromMap(attributesMap)
-	//	ageMap, ok2 = attributesMap["Age"]
-	//	if !ok1 || !ok2 || !ok3 || nameMap != name || ageMap != newAge || bd != now {
-	//		t.Fatal(fmt.Sprintf("Error Reading object : Expected <%v> but Given <%v>", mp, attributesMap))
-	//	}
+	fmt.Println(fmt.Sprintf("%v", mp))
+	var newAge int = 45
+	attributesMap["Age"] = newAge
+	mp.SetFromMap(attributesMap)
+	ageMap, ok2 = attributesMap["Age"]
+	if !ok1 || !ok2 || !ok3 || nameMap != name || ageMap != newAge || bd != now {
+		t.Fatal(fmt.Sprintf("Error Reading object : Expected <%v> but Given <%v>", mp, attributesMap))
+	}
 
 }
