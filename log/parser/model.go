@@ -71,11 +71,11 @@ type _logUrlStreamStruct struct {
 func (l *_logStdOutStruct) Open() error {
 	var err error
 	defer func() {
-		r := recover()
-		if errs.IsError(r) {
-			err = r.(error)
+		itf := recover()
+		if errs.IsError(itf) {
+			err = itf.(error)
 		} else {
-			err = errors.New("Unknown Error Occured")
+			err = errors.New(fmt.Sprintf("Unknown Error Occured : %v", itf))
 		}
 	}()
 	l.converter = getConverterByStreamInOutFormat(l._logFormat)

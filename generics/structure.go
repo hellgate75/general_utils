@@ -70,13 +70,15 @@ func PrepareFileStructList(element interface{}) ([]FieldConfig, error) {
 	defer func() {
 		itf := recover()
 		if errs.IsError(itf) {
+			err = itf.(error)
 			if logger != nil {
-				logger.ErrorS(fmt.Sprintf("Error in PrepareFileStructList, nessage : %s", (itf.(error)).Error()))
+				logger.ErrorS(fmt.Sprintf("Error in PrepareFileStructList, message : %s", err.Error()))
 			}
 
 		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
 			if logger != nil {
-				logger.ErrorS(fmt.Sprintf("Error in PrepareFileStructList, nessage : %s", itf))
+				logger.ErrorS(fmt.Sprintf("Error in PrepareFileStructList, message : %v", itf))
 			}
 		}
 	}()
@@ -113,9 +115,14 @@ func PrepareFileStructMap(element interface{}) (map[string]FieldConfig, error) {
 		if logger != nil {
 			if errs.IsError(itf) {
 				err = itf.(error)
-				logger.ErrorS(fmt.Sprintf("Error in PrepareFileStructMap, nessage : %s", err.Error()))
+				if logger != nil {
+					logger.ErrorS(fmt.Sprintf("Error in PrepareFileStructMap, message : %s", err.Error()))
+				}
 			} else {
-				logger.ErrorS(fmt.Sprintf("Error in PrepareFileStructMap, nessage : %s", itf))
+				err = errors.New(fmt.Sprintf("%v", itf))
+				if logger != nil {
+					logger.ErrorS(fmt.Sprintf("Error in PrepareFileStructMap, message : %v", itf))
+				}
 			}
 		}
 	}()
@@ -157,6 +164,10 @@ func SetFromMapImpl(yourInterface interface{}, attributes map[string]interface{}
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			logger.ErrorS(fmt.Sprintf("Error in SetFromMapImpl(), message : %s", err.Error()))
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			logger.ErrorS(fmt.Sprintf("Error in SetFromMapImpl(), message : %v", itf))
 		}
 	}()
 	for k, v := range attributes {

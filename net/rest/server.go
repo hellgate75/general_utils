@@ -40,7 +40,8 @@ func (rest *__restServerStruct) __baseRestEntryActionFunc(w http.ResponseWriter,
 			err = itf.(error)
 			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest : %s", err.Error()))
 		} else {
-			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest : %v", err))
+			err = errors.New(fmt.Sprintf("%v", itf))
+			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest : %v", itf))
 		}
 	}()
 	var path string = r.URL.Path
@@ -79,6 +80,10 @@ func (rest *__restServerStruct) Open() error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest server Open : %s", err.Error()))
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest server Open : %v", itf))
 		}
 	}()
 	rest.__running = true
@@ -102,6 +107,10 @@ func (rest *__restServerStruct) Close() error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest server Close : %s", err.Error()))
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest server Close : %v", itf))
 		}
 	}()
 	rest.__logger.Close()
@@ -137,8 +146,13 @@ func (rest *__restServerStruct) Destroy() error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest server Destory : %s", err.Error()))
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest server Destory : %v", itf))
 		}
 	}()
+	rest.__logger.Close()
 	rest.__logger = nil
 	return err
 }
@@ -148,6 +162,10 @@ func (rest *__restServerStruct) WaitFor() error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest server WaitFor : %s", err.Error()))
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest server WaitFor : %v", itf))
 		}
 	}()
 	for rest.__running {

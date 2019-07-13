@@ -16,6 +16,14 @@ func __defaulManageNotFound(w http.ResponseWriter, r *http.Request) error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			if logger != nil {
+				logger.ErrorS(fmt.Sprintf("Error in Default ManageNotFound Manager, message : %s", err.Error()))
+			}
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			if logger != nil {
+				logger.ErrorS(fmt.Sprintf("Error in Default ManageNotFound Manager, message : %v", itf))
+			}
 		}
 	}()
 	http.NotFound(w, r)
@@ -28,6 +36,14 @@ func __defaulManageInternalError(w http.ResponseWriter, r *http.Request) error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			if logger != nil {
+				logger.ErrorS(fmt.Sprintf("Error in Default InternalError Manager, message : %s", err.Error()))
+			}
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			if logger != nil {
+				logger.ErrorS(fmt.Sprintf("Error in Default InternalError Manager, message : %v", itf))
+			}
 		}
 	}()
 	http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
@@ -47,6 +63,14 @@ func CreateHttpActionByStatus(message string, code int) HTTPAction {
 			itf := recover()
 			if errs.IsError(itf) {
 				err = itf.(error)
+				if logger != nil {
+					logger.ErrorS(fmt.Sprintf("Error in CreateHttpActionByStatus(), message : %s", err.Error()))
+				}
+			} else {
+				err = errors.New(fmt.Sprintf("%v", itf))
+				if logger != nil {
+					logger.ErrorS(fmt.Sprintf("Error in CreateHttpActionByStatus(), message : %v", itf))
+				}
 			}
 		}()
 		http.Error(w, message, code)
@@ -96,6 +120,14 @@ func (eh *__httpStateHandlerStruct) GetActionByCode(code int) (HTTPAction, error
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			if logger != nil {
+				logger.ErrorS(fmt.Sprintf("Error in StateHandler.GetActionByCode(), message : %s", err.Error()))
+			}
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			if logger != nil {
+				logger.ErrorS(fmt.Sprintf("Error in StateHandler.GetActionByCode(), message : %s", err.Error()))
+			}
 		}
 	}()
 	if act, ok := eh.__stateHandlerMap[code]; ok {
@@ -111,6 +143,14 @@ func (eh *__httpStateHandlerStruct) AddActionByCode(message string, code int) er
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			if logger != nil {
+				logger.ErrorS(fmt.Sprintf("Error in StateHandler.AddActionByCode(), message : %s", err.Error()))
+			}
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			if logger != nil {
+				logger.ErrorS(fmt.Sprintf("Error in StateHandler.AddActionByCode(), message : %v", itf))
+			}
 		}
 	}()
 	if _, ok := eh.__stateHandlerMap[code]; ok {
@@ -125,6 +165,14 @@ func (eh *__httpStateHandlerStruct) AddActionsByMap(newErrorMap map[int]HTTPActi
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			if logger != nil {
+				logger.ErrorS(fmt.Sprintf("Error in StateHandler.AddActionsByMap(), message : %s", err.Error()))
+			}
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			if logger != nil {
+				logger.ErrorS(fmt.Sprintf("Error in StateHandler.AddActionsByMap(), message : %v", itf))
+			}
 		}
 	}()
 	var overwriteList []int

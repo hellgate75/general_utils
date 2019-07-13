@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	errs "github.com/hellgate75/general_utils/errors"
+	"github.com/hellgate75/general_utils/log"
 	"github.com/hellgate75/general_utils/net/common"
 	"github.com/hellgate75/general_utils/net/rest"
 	"github.com/hellgate75/general_utils/net/tcp"
@@ -43,6 +44,14 @@ func NewServer(serverType common.ServerType, args ...interface{}) (common.Server
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			if logger != nil {
+				logger.Log(log.ERROR, fmt.Sprintf("Error executing tcp server Destroy : %s", err.Error()))
+			}
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			if logger != nil {
+				logger.Log(log.ERROR, fmt.Sprintf("Error executing tcp server Destroy : %v", itf))
+			}
 		}
 	}()
 	if len(args) == 0 {

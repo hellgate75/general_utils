@@ -204,6 +204,10 @@ func (ws *__webServerStruct) Open() error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			ws.__logger.Log(common.ERROR, fmt.Sprintf("Error executing web server Open : %s", err.Error()))
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			ws.__logger.Log(common.ERROR, fmt.Sprintf("Error executing web server Open : %v", err))
 		}
 	}()
 	ws.__running = true
@@ -218,6 +222,10 @@ func (ws *__webServerStruct) Close() error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			ws.__logger.Log(common.ERROR, fmt.Sprintf("Error executing web server Close : %s", err.Error()))
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			ws.__logger.Log(common.ERROR, fmt.Sprintf("Error executing web server Close : %v", err))
 		}
 	}()
 	ws.__logger.Close()
@@ -252,6 +260,10 @@ func (ws *__webServerStruct) Destroy() error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			ws.__logger.Log(common.ERROR, fmt.Sprintf("Error executing web server Destroy : %s", err.Error()))
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			ws.__logger.Log(common.ERROR, fmt.Sprintf("Error executing web server Destroy : %v", err))
 		}
 	}()
 	ws.__logger = nil
@@ -265,6 +277,10 @@ func (ws *__webServerStruct) WaitFor() error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			ws.__logger.Log(common.ERROR, fmt.Sprintf("Error executing web server WaitFor : %s", err.Error()))
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			ws.__logger.Log(common.ERROR, fmt.Sprintf("Error executing web server WaitFor : %v", err))
 		}
 	}()
 	for ws.__running {

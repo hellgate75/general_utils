@@ -56,7 +56,8 @@ func (tcpServer *__tcpServerStruct) __baseTcpEntryActionFunc(conn net.Conn) {
 			err = itf.(error)
 			tcpServer.__logger.Log(common.ERROR, fmt.Sprintf("Error executing tcp server handler : %s", err.Error()))
 		} else {
-			tcpServer.__logger.Log(common.ERROR, fmt.Sprintf("Error executing tcp server : %v", err))
+			err = errors.New(fmt.Sprintf("%v", itf))
+			tcpServer.__logger.Log(common.ERROR, fmt.Sprintf("Error executing tcp server handler : %v", itf))
 		}
 	}()
 	tcpServer.__lock.RLock()
@@ -96,6 +97,10 @@ func (tcpServer *__tcpServerStruct) Open() error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			tcpServer.__logger.Log(common.ERROR, fmt.Sprintf("Error executing tcp server Open : %s", err.Error()))
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			tcpServer.__logger.Log(common.ERROR, fmt.Sprintf("Error executing tcp server Open : %v", itf))
 		}
 	}()
 	tcpServer.__running = true
@@ -139,6 +144,10 @@ func (tcpServer *__tcpServerStruct) Close() error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			tcpServer.__logger.Log(common.ERROR, fmt.Sprintf("Error executing tcp server Close : %s", err.Error()))
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			tcpServer.__logger.Log(common.ERROR, fmt.Sprintf("Error executing tcp server Close : %v", itf))
 		}
 	}()
 	tcpServer.__logger.Close()
@@ -177,8 +186,13 @@ func (tcpServer *__tcpServerStruct) Destroy() error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			tcpServer.__logger.Log(common.ERROR, fmt.Sprintf("Error executing tcp server Destroy : %s", err.Error()))
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			tcpServer.__logger.Log(common.ERROR, fmt.Sprintf("Error executing tcp server Destroy : %v", err))
 		}
 	}()
+	tcpServer.__logger.Close()
 	tcpServer.__logger = nil
 	return err
 }
@@ -188,6 +202,10 @@ func (tcpServer *__tcpServerStruct) WaitFor() error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
+			tcpServer.__logger.Log(common.ERROR, fmt.Sprintf("Error executing tcp server WaitFor : %s", err.Error()))
+		} else {
+			err = errors.New(fmt.Sprintf("%v", itf))
+			tcpServer.__logger.Log(common.ERROR, fmt.Sprintf("Error executing tcp server WaitFor : %v", err))
 		}
 	}()
 	for tcpServer.__running {
