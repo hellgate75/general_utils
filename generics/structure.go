@@ -164,10 +164,14 @@ func SetFromMapImpl(yourInterface interface{}, attributes map[string]interface{}
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
-			logger.ErrorS(fmt.Sprintf("Error in SetFromMapImpl(), message : %s", err.Error()))
+			if logger != nil {
+				logger.ErrorS(fmt.Sprintf("Error in SetFromMapImpl(), message : %s", err.Error()))
+			}
 		} else {
 			err = errors.New(fmt.Sprintf("%v", itf))
-			logger.ErrorS(fmt.Sprintf("Error in SetFromMapImpl(), message : %v", itf))
+			if logger != nil {
+				logger.ErrorS(fmt.Sprintf("Error in SetFromMapImpl(), message : %v", itf))
+			}
 		}
 	}()
 	for k, v := range attributes {
@@ -178,105 +182,6 @@ func SetFromMapImpl(yourInterface interface{}, attributes map[string]interface{}
 			fd.Set(reflect.ValueOf(v))
 		}
 	}
-	//	for _, field := range fieldList {
-	//		if strFld, ok := yourType.FieldByName(field.Name); ok {
-	//			if strFld.Type.Name() == field.Type.Name() {
-	//				if field.IsNil {
-	//					yourValue.FieldByName(field.Name).Set(reflect.Zero(strFld.Type))
-	//				} else {
-	//					fmt.Println(field.Value.Type().Kind().String())
-	//					fmt.Println(field.Value)
-	//					//					Invalid Kind = iota
-	//					//					Bool
-	//					//					Int
-	//					//					Int8
-	//					//					Int16
-	//					//					Int32
-	//					//					Int64
-	//					//					Uint
-	//					//					Uint8
-	//					//					Uint16
-	//					//					Uint32
-	//					//					Uint64
-	//					//					Uintptr
-	//					//					Float32
-	//					//					Float64
-	//					//					Complex64
-	//					//					Complex128
-	//					//					Array
-	//					//					Chan
-	//					//					Func
-	//					//					Interface
-	//					//					Map
-	//					//					Ptr
-	//					//					Slice
-	//					//					String
-	//					//					Struct
-	//					//					UnsafePointer
-	//					if !yourValue.FieldByName(field.Name).CanSet() {
-	//						fmt.Println(fmt.Sprintf("Cannot set Value for field %s!!!", field.Name))
-	//						continue
-	//					}
-	//					switch field.Value.Type().Kind() {
-	//					case reflect.String:
-	//						var value string = string(field.Value.String())
-	//						reflect.ValueOf(yourInterface).SetString(value)
-	//						//						yourValue.FieldByName(field.Name).SetString(value)
-	//					case reflect.Int64, reflect.Int32, reflect.Int16, reflect.Int:
-	//						var value int64 = int64(field.Value.Int())
-	//						yourValue.FieldByName(field.Name).SetInt(value)
-	//					case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-	//						var value uint64 = uint64(field.Value.Uint())
-	//						yourValue.FieldByName(field.Name).SetUint(value)
-	//					case reflect.Float32, reflect.Float64:
-	//						var value float64 = float64(field.Value.Float())
-	//						yourValue.FieldByName(field.Name).SetFloat(value)
-	//					case reflect.Complex64, reflect.Complex128:
-	//						var value complex128 = complex128(field.Value.Complex())
-	//						yourValue.FieldByName(field.Name).SetComplex(value)
-	//						//					case reflect.Array:
-	//						//						var value complex128 = complex128(field.Value.)
-	//						//						yourValue.FieldByName(field.Name).SetComplex(value)
-	//					case reflect.Bool:
-	//						var value bool = field.Value.Bool()
-	//						yourValue.FieldByName(field.Name).SetBool(value)
-	//					case reflect.Ptr:
-	//						var value uintptr = field.Value.Pointer()
-	//						yourValue.FieldByName(field.Name).SetPointer(unsafe.Pointer(value))
-	//					default:
-	//						yourValue.FieldByName(field.Name).Set(field.Value)
-	//
-	//					}
-	//				}
-	//			} else {
-	//				//Wrong type
-	//				wrongFieldList = append(wrongFieldList, field)
-	//			}
-	//		} else {
-	//			// discarded
-	//			discardedFieldList = append(discardedFieldList, field)
-	//		}
-	//	}
-	//	var messages []string
-	//	if len(wrongFieldList) > 0 {
-	//		//Report wrong (nor present in the object) fields in the map
-	//		for _, wf := range wrongFieldList {
-	//			messages = append(messages, fmt.Sprintf("Error parsing field %s : Wrong type in target interface", wf.Name))
-	//		}
-	//	}
-	//	if len(discardedFieldList) > 0 {
-	//		//Report discarded fields in the map
-	//		for _, df := range discardedFieldList {
-	//			messages = append(messages, fmt.Sprintf("Error parsing field %s : Not present in target interface", df.Name))
-	//		}
-	//	}
-	//	if len(messages) > 0 {
-	//		var errorMessage string = "Follwong errors has been caught in  : "
-	//		for _, message := range messages {
-	//			errorMessage = fmt.Sprintf("%s\n%s", errorMessage, message)
-	//		}
-	//		err = errors.New(errorMessage)
-	//	}
 	return yourInterface, err
 }
 
