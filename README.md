@@ -27,7 +27,6 @@ Packages :
 * [parser/logger](/parser/logger) - Package that contains logger parser features
 * [process](/process) - Package that contains process, workflows and semaphores for process management
 * [streams](/streams) - Package that contains Brokers, Events, Consumers, Channel managers, and more streaming features, types and utilities
-* [utils](/utils) - Package that contains basic types utilities (arrays, files, etc..)
 
 All packages are internal logger ready, integrated and full working.
 

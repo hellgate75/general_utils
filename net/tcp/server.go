@@ -186,14 +186,20 @@ func (tcpServer *__tcpServerStruct) Destroy() error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
-			tcpServer.__logger.Log(common.ERROR, fmt.Sprintf("Error executing tcp server Destroy : %s", err.Error()))
+			if tcpServer.__logger != nil {
+				tcpServer.__logger.Log(common.ERROR, fmt.Sprintf("Error executing tcp server Destroy : %s", err.Error()))
+			}
 		} else {
 			err = errors.New(fmt.Sprintf("%v", itf))
-			tcpServer.__logger.Log(common.ERROR, fmt.Sprintf("Error executing tcp server Destroy : %v", err))
+			if tcpServer.__logger != nil {
+				tcpServer.__logger.Log(common.ERROR, fmt.Sprintf("Error executing tcp server Destroy : %v", err))
+			}
 		}
 	}()
-	tcpServer.__logger.Close()
-	tcpServer.__logger = nil
+	if tcpServer.__logger != nil {
+		tcpServer.__logger.Close()
+		tcpServer.__logger = nil
+	}
 	return err
 }
 func (tcpServer *__tcpServerStruct) WaitFor() error {

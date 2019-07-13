@@ -146,14 +146,21 @@ func (rest *__restServerStruct) Destroy() error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
-			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest server Destory : %s", err.Error()))
+			if rest.__logger != nil {
+				rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest server Destory : %s", err.Error()))
+
+			}
 		} else {
 			err = errors.New(fmt.Sprintf("%v", itf))
-			rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest server Destory : %v", itf))
+			if rest.__logger != nil {
+				rest.__logger.Log(common.ERROR, fmt.Sprintf("Error executing rest server Destory : %v", itf))
+			}
 		}
 	}()
-	rest.__logger.Close()
-	rest.__logger = nil
+	if rest.__logger != nil {
+		rest.__logger.Close()
+		rest.__logger = nil
+	}
 	return err
 }
 func (rest *__restServerStruct) WaitFor() error {

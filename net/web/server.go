@@ -260,13 +260,20 @@ func (ws *__webServerStruct) Destroy() error {
 		itf := recover()
 		if errs.IsError(itf) {
 			err = itf.(error)
-			ws.__logger.Log(common.ERROR, fmt.Sprintf("Error executing web server Destroy : %s", err.Error()))
+			if ws.__logger != nil {
+				ws.__logger.Log(common.ERROR, fmt.Sprintf("Error executing web server Destroy : %s", err.Error()))
+			}
 		} else {
 			err = errors.New(fmt.Sprintf("%v", itf))
-			ws.__logger.Log(common.ERROR, fmt.Sprintf("Error executing web server Destroy : %v", err))
+			if ws.__logger != nil {
+				ws.__logger.Log(common.ERROR, fmt.Sprintf("Error executing web server Destroy : %v", err))
+			}
 		}
 	}()
-	ws.__logger = nil
+	if ws.__logger != nil {
+		ws.__logger.Close()
+		ws.__logger = nil
+	}
 	ws.Config = nil
 	ws.Context = nil
 	return err
