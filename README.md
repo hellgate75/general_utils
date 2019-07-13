@@ -8,6 +8,9 @@ GoLang general utility libraries for supporting GoLanguage program development, 
 
 Any of package is extremely and exhaustively tested, and ready for use. Into any package you can find details about provided features, types and utilities
 
+##### Related linked resources:
+* [general_structures](https://github.com/hellgate75/general_structures) - General purpose data/logic structural components library (builders, utilities, flow, logic, event handling, terminal screen manager, plug-ins, etc...) 
+
 ## Library details
 
 Packages :
